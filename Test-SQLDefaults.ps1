@@ -23,7 +23,7 @@
     This will run Pester tests against SQLServer1 instance and check using all the variables
     .EXAMPLE
       $Parms = @{
-      Servers = 'SQLServer1','SQLServer2','SQLServer3';
+      Servers = 'SQLServer1','SQLServer2','SQLServer2\Instance1','SQLServer3';
       SQLAdmins = 'THEBEARD\Rob','THEBEARD\SQLAdmins';
       BackupDirectory = 'C:\MSSQL\Backup';
       DataDirectory = 'C:\MSSQL\Data\';
@@ -57,7 +57,7 @@
       
       Test-SQLDefault @Parms
 
-    This example uses splatting to hold the parameters and will run the tests against SQLServer1, SQLServer2 and SQLServer3
+    This example uses splatting to hold the parameters and will run the tests against SQLServer1, SQLServer2, SQLServer2\Instance1 and SQLServer3
     .NOTES
     AUTHOR : Rob Sewell http://sqldbawithabeard.com
     Initial 12/05/2016
@@ -65,12 +65,12 @@
 function Test-SQLDefault {
 [CmdletBinding()]
 param(
-# Server Name or an array of server names
+# Server Name or ServerName\InstanceName or an array of server names and/or servername\instancenames
     [Parameter(Mandatory = $true, 
         ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true, 
     Position = 0)]
-    [string]$Servers ,
+    $Servers ,
 # Expected SQL Admin Account or an array of accounts
     [Parameter(Mandatory = $true, 
         ValueFromPipeline = $true,
@@ -264,13 +264,29 @@ param(
     [string]$LogSPBlitzToTableStartTime  
 )
 foreach($Server in $Servers)
-{
+
+    {
+    if($Server.Contains('\'))
+    {
+    $ServerName = $Server.Split('\')[0]
+    }
+    else
+    {
+    $Servername = $Server
+    }
+
+   
     ## Check for connectivity
-      if((Test-Connection $Server -count 1 -Quiet) -eq $false){
-       Write-Error 'Could not connect to $Server'
+      if((Test-Connection $ServerName -count 1 -Quiet) -eq $false){
+       Write-Error "Could not connect to $ServerName"
        $_
        continue
         }
+       if ([bool](Test-WSMan -ComputerName $ServerName -ErrorAction SilentlyContinue))
+       {}
+       else
+       {Write-Error "PSRemoting is not enabled on $ServerName Please enable and retry"
+       continue}
 
     Describe "$Server" {
         BeforeAll {
@@ -299,7 +315,7 @@ foreach($Server in $Servers)
             $Return.RestoreProc = $Sps -contains 'RestoreCommand'
             $Return.OlaSysFullEnabled = $srv.JobServer.jobs['DatabaseBackup - SYSTEM_DATABASES - FULL'].IsEnabled
             $Return.OlaSysFullScheduled = $srv.JobServer.jobs['DatabaseBackup - SYSTEM_DATABASES - FULL'].HasSchedule
-            $Return.OlaSysFullFrequency = $srv.JobServer.jobs['DatabaseBackup - SYSTEM_DATABASES - FULL'].JobSchedules.FrequencyTypes.value__
+            $Return.OlaSysFullFrequency = $srv.JobServer.jobs['DatabaseBackup - SYSTEM_DATABASES - FULL'].JobSchedules.FrequencyTypes
             $Return.OlaSysFullStartTime = $srv.JobServer.jobs['DatabaseBackup - SYSTEM_DATABASES - FULL'].JobSchedules.ActiveStartTimeOfDay
             $Return.OlaUserFullEnabled = $srv.JobServer.jobs['DatabaseBackup - USER_DATABASES - FULL'].IsEnabled
             $Return.OlaUserFullScheduled = $srv.JobServer.jobs['DatabaseBackup - USER_DATABASES - FULL'].HasSchedule
@@ -337,23 +353,17 @@ foreach($Server in $Servers)
             $Return.SysDatabasesFullBackupToday = $srv.Databases.Where{$_.IsSystemObject -eq $true -and $_.Name -ne 'tempdb' -and $_.LastBackupDate -lt (Get-Date).AddDays(-1)}.Count
             Return $Return
            }
-           try {
-            $Return = Invoke-Command -ScriptBlock $Scriptblock -ComputerName $Server -ErrorAction Stop
-            }
-            catch {
-            Write-Error "Unable to Connect to $Server"
-            $Error
-            continue
-            }
+            $Return = Invoke-Command -ScriptBlock $Scriptblock -ComputerName $ServerName
             }
        Context 'Server' {
         It 'Should Exist and respond to ping' {
-            $connect = Test-Connection $Server -count 1 -Quiet 
+            $connect = Test-Connection $ServerName -count 1 -Quiet 
             $Connect|Should Be $true
         }
+        if($connect -eq $false){break}
        It 'Should have SQL Server Installed' {  
             $Scriptblock = {(Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQLServer' -ErrorAction SilentlyContinue)} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
             $State | Should Be $true
         }
         } # End Context 
@@ -362,54 +372,55 @@ foreach($Server in $Servers)
             (Get-Service -ComputerName $Server -Name MSSQLServer).Status | Should Be 'Running'
         }
         It 'SQL Db Engine should be Automatic Start' {
-            (Get-CimInstance -ClassName Win32_Service -Filter "Name = 'MSSQLServer'" -ComputerName $Server).StartMode |should be 'Auto'
+            (Get-CimInstance -ClassName Win32_Service -Filter "Name = 'MSSQLServer'" -ComputerName $ServerName).StartMode |should be 'Auto'
         }
         It 'SQL Agent should be running' {
-            (Get-Service -ComputerName $Server -Name SQLServerAgent).Status | Should Be 'Running'
+            (Get-Service -ComputerName $ServerName -Name SQLServerAgent).Status | Should Be 'Running'
         }
         It 'SQL Agent should be Automatic Start' {
-            (Get-CimInstance -ClassName Win32_Service -Filter "Name = 'SQLServerAgent'" -ComputerName $Server).StartMode |should be 'Auto'
+            (Get-CimInstance -ClassName Win32_Service -Filter "Name = 'SQLServerAgent'" -ComputerName $ServerName).StartMode |should be 'Auto'
         }
         } # End Context 
-       Context 'FireWall' {   
+       Context 'FireWall' {
+    
         It 'Should have a Firewall connection for SQL Browser' {
             $Scriptblock = {Get-NetFirewallRule -Name 'SQL Browser Service - Allow'} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
-            $State| Should Be $true
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
+            $State | Should Be $true
         }
         It 'Firewall connection for SQL Browser should be enabled' {
             $Scriptblock = {(Get-NetFirewallRule -Name 'SQL Browser Service - Allow').Enabled} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
             $State | Should Be $true
         }
         It 'SQL Browser Firewall Action Should Be Allow' {
             $Scriptblock = {(Get-NetFirewallRule -Name 'SQL Browser Service - Allow').Action} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
             $State.value | Should Be 'Allow'
         }
         It 'SQL Browser Firewall Application should be the SQLBrowser.exe' {
             $Scriptblock = {(Get-NetFirewallRule -Name 'SQL Browser Service - Allow'|Get-NetFirewallApplicationFilter).Program} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
             $State | Should Be 'C:\Program Files (x86)\Microsoft SQL Server\90\Shared\sqlbrowser.exe'
         }
         It 'Should have a Firewall connection for SQL DB Engine' {
             $Scriptblock = {Get-NetFirewallRule -Name 'SQL Database Engine - Allow'} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
             $State | Should Be $true
         }
         It 'Firewall connection for SQL DB Engine should be enabled' {
             $Scriptblock = {(Get-NetFirewallRule -Name 'SQL Database Engine - Allow').Enabled} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
             $State | Should Be $true
         }
         It 'DB EngineFirewall Action Should Be Allow' {
             $Scriptblock = {(Get-NetFirewallRule -Name 'SQL Database Engine - Allow').Action} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
             $State.value | Should Be 'Allow'
         }
         It 'DB EngineFirewall Application should be the SQLBrowaser.exe' {
             $Scriptblock = {(Get-NetFirewallRule -Name 'SQL Database Engine - Allow'|Get-NetFirewallApplicationFilter).Program} 
-            $State = Invoke-Command -ComputerName $Server -ScriptBlock $Scriptblock 
+            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
             $State | Should Be 'C:\Program Files\Microsoft SQL Server\MSSQL11.MSSQLSERVER\MSSQL\Binn\sqlservr.exe'
         }
     } # End Context Firewall
@@ -420,7 +431,7 @@ foreach($Server in $Servers)
             It 'Databases should have a normal Status - No Restoring, Recovery Pending etc' {
             $Return.DatabasesStatus |Should Be 0
             }
-            It 'System Databases Should have been backed up within the last 24 hours' {
+            It 'System Databases Shol dhave been backed up within the last 24 hours' {
             $Return.SysDatabasesFullBackupToday | SHould be 0
             }
         } # End Context 
@@ -459,9 +470,6 @@ foreach($Server in $Servers)
         }
         It 'Should have alerts for 823,824 and 825' {
         $Return.Alerts82345Exist |Should Be 3
-        }
-        It 'Alerts for 823,824 and 825 should be enebled' {
-        $Return.Alerts82345Enabled |Should Be 3
         }
         } # End Context 
         Context 'Agent Jobs' {
@@ -540,12 +548,12 @@ foreach($Server in $Servers)
         It "Should have the Log SP_WhoisActive to Table Agent Job $LogSPBlitzToTable" {
             $Return.LogSPBlitzToTable| Should Be $LogSPBlitzToTable 
         }
-        It "Log SP_Blitz to Table Agent Job Should Be $LogSPBlitzToTableEnabled" {
+        It "Log SP_Blitz to Table Agent Job Should Be Enabled" {
             $Return.LogSPBlitzToTableEnabled| Should Be $LogSPBlitzToTableEnabled
         }
-        It "Log SP_Blitz to Table Agent Job Should Be $LogSPBlitzToTableScheduledScheduled" {
+        It "Log SP_Blitz to Table Agent Job Should Be Scheduled" {
             $Return.LogSPBlitzToTableScheduled| Should Be $LogSPBlitzToTableScheduled
-        }
+       }
         It "Log SP_Blitz to Table Agent Job Should Be Scheduled $LogSPBlitzToTableSchedule" {
             $Return.LogSPBlitzToTableSchedule.Value| Should Be $LogSPBlitzToTableSchedule
         }
