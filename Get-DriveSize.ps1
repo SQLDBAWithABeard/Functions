@@ -1,4 +1,4 @@
-﻿<#
+<#
     .Synopsis
     Function to return space details for drives and mount points on local and remote servers
     .DESCRIPTION
