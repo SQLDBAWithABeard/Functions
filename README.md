@@ -7,4 +7,4 @@ Contains useful functions that I use and am able to share.
 
 [Show-DatabasesOnServer](Show-DatabasesOnServer.ps1) - Returns the Name and sizes of databases on a server or array of servers
 
-[Set-OlaJobSchedule](Set-OlaJobSchedule.ps1) - Sets the agent job schedule for the jobs created by Ola Hallengrens Maintenance plan
+[Set-OlaJobSchedule](Set-OlaJobsSchedule.ps1) - Sets the agent job schedule for the jobs created by Ola Hallengrens Maintenance plan
