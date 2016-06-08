@@ -56,11 +56,7 @@ function Get-DriveSize
   {
     try 
     {
-      $ScriptBlock = {
-        $version = [int](Get-CimInstance -ClassName Win32_OperatingSystem).Version.split('.')[0]
-        return $version
-      }
-      Invoke-Command -ComputerName $Server -ScriptBlock $ScriptBlock -Credential $Credential -ErrorAction Stop
+        $version = [int](Get-WMIObject -ClassName Win32_OperatingSystem -Credential $Credential).Version.split('.')[0]
     }
     catch 
     {
@@ -73,16 +69,17 @@ function Get-DriveSize
   {
     try 
     {
-      $version = [int](Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName $Server -ErrorAction Stop).Version.split('.')[0]
+      $version = [int](Get-WMIObject -ClassName Win32_OperatingSystem -ComputerName $Server -ErrorAction Stop).Version.split('.')[0]
     }
     catch 
     {
       Write-Error -Message 'Failed to get Operating System'
       $_
+      break
     }
   }
 
-  If($version -gt 6)
+  If($version -ge 6)
   {
     $FreeGb = @{
       Name       = 'FreeGB'
@@ -107,11 +104,11 @@ function Get-DriveSize
       try 
       {
         $ScriptBlock = {
-          $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop).Where{
+          $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop ).Where{
             $_.DriveLetter -ne $null
           }
           $Return = $disks |
-          Select-Object -Property Name, Label , $TotalGB , $FreeGb , $FreePercent |
+          Select-Object -Property PSComputerName, Name, Label , $TotalGB , $FreeGb , $FreePercent |
           Sort-Object -Property Name |
           Format-Table -AutoSize |
           Out-String
@@ -131,10 +128,10 @@ function Get-DriveSize
       try 
       {
         $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop).Where{
-          $_.DriveLetter -ne $null
+          $_.DriveType -eq 3 -and $_.DriveLetter -ne $null
         }
         $Return = $disks |
-        Select-Object -Property Name, Label , $TotalGB , $FreeGb , $FreePercent |
+        Select-Object -Property PSComputerName, Name, Label , $TotalGB , $FreeGb , $FreePercent |
         Sort-Object -Property Name |
         Format-Table -AutoSize |
         Out-String
@@ -161,13 +158,19 @@ function Get-DriveSize
       expression = {
         [math]::round(((($_.FreeSpace / 1Gb)/($_.Size / 1Gb)) * 100),0)
       }
+      }
+    $FreeGb = @{
+      Name       = 'FreeGB'
+      Expression = {
+        '{0:N2}' -f ($_.Freespace/1GB)
+      }
     }
+    
     if($Credential)
     {
       Try 
       {
-        $ScriptBlock = {
-          $Return = Get-WmiObject -Class win32_logicaldisk -ComputerName $Server -ErrorAction Stop|
+         $Return = Get-WmiObject -Class win32_logicaldisk -ComputerName $Server -Credential $Credential -ErrorAction Stop|
           Where-Object -FilterScript {
             $_.drivetype -eq 3
           }|
@@ -176,8 +179,6 @@ function Get-DriveSize
           Format-Table -AutoSize  |
           Out-String
           return $Return
-        }
-        Invoke-Command -ComputerName $Server -ScriptBlock $ScriptBlock -Credential $Credential -ErrorAction Stop
       }
       Catch 
       {
@@ -208,6 +209,5 @@ function Get-DriveSize
       }
     }
   }
-  Write-Output  -InputObject "Disk Space on $Server at $Date"
   return $Return
 }
