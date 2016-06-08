@@ -12,15 +12,15 @@
     The "One Day a week here should be a different day of the week
 
     User databases:
-    â€¢Full backup one day per week                                  * If using differentials otherwise daily
-    â€¢Differential backup all other days of the week                * If required - otherwise don't schedule
+    â€¢Full backup one day per week   Sunday 00:16                               * If using differentials otherwise daily
+    â€¢Differential backup all other days of the week   00:16             * If required - otherwise don't schedule
     â€¢Transaction log backup every hour
-    â€¢Integrity check one day per week
+    â€¢Integrity check one day per week 20:16 on a Friday
     â€¢Index maintenance one day per week
 
     System databases:
-    â€¢Full backup every day
-    â€¢Integrity check one day per week
+    â€¢Full backup every day 23:46
+    â€¢Integrity check one day per week 23:16 on a Friday
 
     I recommend that you run a full backup after the index maintenance. The following differential backups will then be small. I also recommend that you perform the full backup after the integrity check. Then you know that the integrity of the backup is okay.
 
@@ -28,10 +28,10 @@
     The one day of a week here can be the same day of the week
 
     Cleanup:
-    â€¢sp_delete_backuphistory one day per week
-    â€¢sp_purge_jobhistory one day per week
-    â€¢CommandLog cleanup one day per week
-    â€¢Output file cleanup one day per week
+    â€¢sp_delete_backuphistory one day per week 19:16 on a Sunday
+    â€¢sp_purge_jobhistory one day per week 19:16 on a Sunday
+    â€¢CommandLog cleanup one day per week 19:16 on a Sunday
+    â€¢Output file cleanup one day per week 19:16 on a Sunday
 
     .PARAMETER 
     Server
@@ -42,7 +42,7 @@
 
     .NOTES 
     Obviously requires Ola Hallengrens Maintnance Solution script to have been run first and only schedules the default jobs
-
+    https://ola.hallengren.com/
     AUTHOR: Rob Sewell sqldbawithabeard.com 
     DATE: 1/05/2015 - Initial
 #> 
