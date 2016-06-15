@@ -64,14 +64,10 @@ Param(
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
         [switch]$CheckForBackups,
-        # A switch to add tests for existence of database backup folders - will be slower
+        # A switch to add tests for existence of database backup folders - will be slower - Not needed if you Check for Backups
         [Parameter(Mandatory=$false)]
-        [ValidateNotNull()]
-        [ValidateNotNullOrEmpty()]
         [switch]$CheckForDBFolders,
         # The Job Suffix for the OLA backup jobs
-        [Parameter(Mandatory=$false)]
-        [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
         [String]$JobSuffix,
         # The name of the OLA backup share 
@@ -81,14 +77,17 @@ Param(
         [string]$Share,
         # A switch to not perform the test for the existence of a database restore text file created using proc Created by Jared Zagelbaum, https://jaredzagelbaum.wordpress.com/
         [Parameter(Mandatory=$false)]
-        [ValidateNotNull()]
-        [ValidateNotNullOrEmpty()]
-        [switch]$NoDatabaseRestoreTextFileCheck
+        [switch]$NoDatabaseRestoreCheck,
+        # A switch to not perform the test if the Job succeeded
+        [Parameter(Mandatory=$false)]
+        [switch]$DontCheckJobOutcome 
 )
 
 
-$Path = '\Test-Ola.ps1'
 
+
+
+$Path = 'Git:\Functions\Test-OLA.ps1'
 $Script = @{
 Path = $Path;
 Parameters = @{ Instance = $Instance;
@@ -96,7 +95,8 @@ CheckForBackups =  $CheckForBackups;
 CheckForDBFolders =  $CheckForDBFolders;
 JobSuffix = $JobSuffix; 
 Share = $Share;
-NoDatabaseRestoreTextFileCheck = $NoDatabaseRestoreTextFileCheck}
+NoDatabaseRestoreCheck = $NoDatabaseRestoreCheck;
+DontCheckJobOutcome  = $DontCheckJobOutcome }
 }
 Invoke-Pester -Script $Script
 }
