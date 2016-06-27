@@ -1,4 +1,4 @@
-﻿<#
+<#
     .Synopsis
     Function to return space details for drives and mount points on local and remote servers
     .DESCRIPTION
@@ -104,11 +104,11 @@ function Get-DriveSize
       try 
       {
         $ScriptBlock = {
-          $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop).Where{
+          $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop ).Where{
             $_.DriveLetter -ne $null
           }
           $Return = $disks |
-          Select-Object -Property Name, Label , $TotalGB , $FreeGb , $FreePercent |
+          Select-Object -Property PSComputerName, Name, Label , $TotalGB , $FreeGb , $FreePercent |
           Sort-Object -Property Name |
           Format-Table -AutoSize |
           Out-String
@@ -128,10 +128,10 @@ function Get-DriveSize
       try 
       {
         $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop).Where{
-          $_.DriveLetter -ne $null
+          $_.DriveType -eq 3 -and $_.DriveLetter -ne $null
         }
         $Return = $disks |
-        Select-Object -Property Name, Label , $TotalGB , $FreeGb , $FreePercent |
+        Select-Object -Property PSComputerName, Name, Label , $TotalGB , $FreeGb , $FreePercent |
         Sort-Object -Property Name |
         Format-Table -AutoSize |
         Out-String
@@ -212,4 +212,3 @@ function Get-DriveSize
   Write-Output  -InputObject "Disk Space on $Server at $Date"
   return $Return
 }
-
