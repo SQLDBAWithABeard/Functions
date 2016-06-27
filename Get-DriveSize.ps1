@@ -79,7 +79,7 @@ function Get-DriveSize
     }
   }
 
-  If($version -gt 6)
+  If($version -gt 6.2)
   {
     $FreeGb = @{
       Name       = 'FreeGB'
