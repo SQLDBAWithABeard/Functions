@@ -1,21 +1,23 @@
 <# 
 .SYNOPSIS  
-     Shows the Instances and the Port Numbers on a SQL Server
+     Shows the Instances and the Port Numbers and SQL Service Status and Start mode on a SQL Server
 .DESCRIPTION 
-    This function will show the Instances and the Port Numbers on a SQL Server using WMI
+    This function will show the Instances and the Port Numbers on a SQL Server using WMI and 
+    the status of the relevant SQL Service and its start mode
 .PARAMETER Server
     The Server Name
 .EXAMPLE 
     Get-SQLInstancesPort Fade2Black
 
-    This will display the instances and the port numbers on the server Fade2Black
+    This will display the instances, their port numbers and SQL Service status adn start mode on the server Fade2Black
 
 
 .NOTES 
     AUTHOR: Rob Sewell sqldbawithabeard.com 
     DATE: 22/04/2015 
+          26/06/2016 - Added SQL Service information
 #> 
-#version 1.2.0
+
 function Get-SQLInstancesPort
 {
 
