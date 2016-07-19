@@ -25,6 +25,7 @@
     Initial Release 06/03/2014
     Aliased for Show-DriveSizes 25/10/2014
     Updated with remoting capabilities 10/05/2015
+    Updated to use WSMan check - now I understand the error better 17/07/2016 
 #>
 #requires -Version 3 -Modules CimCmdlets
 function Get-DriveSize 
@@ -48,38 +49,32 @@ function Get-DriveSize
   )
   if($PromptForCredential)
   {
+    try
+    {
     $Credential = Get-Credential -Message "Credential with Permissions to $Server"
-  }
-  $Date = Get-Date
-  ## Get the operating system version to decide win32_volume or win32_logicaldisk
-  if($Credential)
-  {
-    try 
-    {
-        $version = [int](Get-WMIObject -ClassName Win32_OperatingSystem -Credential $Credential).Version.split('.')[0]
+    $WSMan3 = (Test-WSMan -ComputerName $Server -Credential $Credential -ErrorAction SilentlyContinue).ProductVersion.contains('Stack: 3')
     }
-    catch 
+    catch
     {
-      Write-Error -Message 'Failed to get Operating System'
-      $_
-      break
-    }        
+    $WSMan3 = $false
+    }
+     
   }
   else
   {
-    try 
+  try
     {
-      $version = [int](Get-WMIObject -ClassName Win32_OperatingSystem -ComputerName $Server -ErrorAction Stop).Version.split('.')[0]
+      $WSMan3 = (Test-WSMan -ComputerName $Server -ErrorAction SilentlyContinue).ProductVersion.contains('Stack: 3')
     }
-    catch 
+  catch
     {
-      Write-Error -Message 'Failed to get Operating System'
-      $_
-      break
+    $WSMan3 = $false
     }
-  }
 
-  If($version -gt 6.2)
+  }
+  $Date = Get-Date
+
+  If($WSMan3)
   {
     $FreeGb = @{
       Name       = 'FreeGB'
@@ -104,11 +99,11 @@ function Get-DriveSize
       try 
       {
         $ScriptBlock = {
-          $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop ).Where{
+          $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop).Where{
             $_.DriveLetter -ne $null
           }
           $Return = $disks |
-          Select-Object -Property PSComputerName, Name, Label , $TotalGB , $FreeGb , $FreePercent |
+          Select-Object -Property Name, Label , $TotalGB , $FreeGb , $FreePercent |
           Sort-Object -Property Name |
           Format-Table -AutoSize |
           Out-String
@@ -128,10 +123,10 @@ function Get-DriveSize
       try 
       {
         $disks = (Get-CimInstance -ClassName win32_volume -ComputerName $Server -ErrorAction Stop).Where{
-          $_.DriveType -eq 3 -and $_.DriveLetter -ne $null
+          $_.DriveType -eq 3 -and $_.SystemVolume -eq $false
         }
         $Return = $disks |
-        Select-Object -Property PSComputerName, Name, Label , $TotalGB , $FreeGb , $FreePercent |
+        Select-Object -Property Name, Label , $TotalGB , $FreeGb , $FreePercent |
         Sort-Object -Property Name |
         Format-Table -AutoSize |
         Out-String
@@ -212,3 +207,4 @@ function Get-DriveSize
   Write-Output  -InputObject "Disk Space on $Server at $Date"
   return $Return
 }
+
