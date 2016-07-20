@@ -1,27 +1,44 @@
 ﻿<#
-    .Synopsis
-    A quick function to estimate the completion time of a SQL Statement
-    .DESCRIPTION
-    Runs some t-sql to gather osme information about requests from the sys.dm_exec_requests dmv to estimate the 
-    amount of time remaining for a statement which can be filtered by BACKUP,RESTORE,INDEX,DBCC,STATS commands
-    .EXAMPLE
-    When-WillThisSQLComplete -Server Fade2black
+.Synopsis
+A quick function to estimate the completion time of a SQL Statement
+.DESCRIPTION
+Runs some t-sql to gather osme information about requests from the sys.dm_exec_requests dmv to estimate the 
+amount of time remaining for a statement which can be filtered by BACKUP,RESTORE,INDEX,DBCC,STATS commands
 
-    Returns SPID, Login Name,Domain, NTUserName,Database, %,START_TIME,STATUS,COMMAND,EST_COMP for all processes on Fade2Black
-    .EXAMPLE
-    When-WillThisSQLComplete -Server SQLServer1 -Commandtype Backup
+.PARAMETER Server
+The SQL Server to query 
 
-    Returns SPID, Login Name,Domain, NTUserName,Database, %,START_TIME,STATUS,COMMAND,EST_COMP for all processes on SQLServer1
+.PARAMETER CommandType
 
-    .NOTES
-    AUTHOR : Rob Sewell http://sqldbawithabeard.com
+The type of command to filter for Backup, Restore, Index,DBCC,Stats
+.PARAMETER OGV
+
+Sends Results to Out-GridView
+
+.EXAMPLE
+When-WillThisSQLComplete -Server Fade2black
+
+Returns SPID, Login Name,Domain, NTUserName,Database, %,START_TIME,STATUS,COMMAND,EST_COMP for all processes on Fade2Black
+.EXAMPLE
+When-WillThisSQLComplete -Server SQLServer1 -Commandtype Backup
+
+Returns SPID, Login Name,Domain, NTUserName,Database, %,START_TIME,STATUS,COMMAND,EST_COMP for all processes on SQLServer1
+
+.EXAMPLE
+When-WillThisSQLComplete -Server Fade2black -OGV
+
+Returns SPID, Login Name,Domain, NTUserName,Database, %,START_TIME,STATUS,COMMAND,EST_COMP for all processes on Fade2Black
+using Out-GridView
+.NOTES
+AUTHOR : Rob Sewell http://sqldbawithabeard.com
 
 #>
 function When-WillSQLComplete
 {
 param([string]$Server,
 [ValidateSet("Backup", "Restore", "Index","DBCC","Stats")]
-[string]$Commandtype
+[string]$Commandtype,
+[switch]$OGV
 )
 $BaseQuery = @"
 USE MASTER
@@ -67,5 +84,27 @@ DBCC     {$query = $BaseQuery + $DBCCCMD}
 Stats    {$query = $BaseQuery + $StatsCMD}
 default  {$query = $BaseQuery }
 }
-Invoke-Sqlcmd -ServerInstance $Server -Database master -Query $query|ft
+try
+{
+$results = Invoke-Sqlcmd -ServerInstance $Server -Database master -Query $query
+}
+catch
+{
+Write-Warning "FAILED to gather information from $Server"
+}
+If($results)
+{
+if($OGV)
+{
+$results | Out-GridView
+}
+else
+{
+$results | Format-Table -AutoSize -Wrap
+}
+}
+else
+{
+Write-Output "There were no results for the $Commandtype queries on $Server"
+}
 }
