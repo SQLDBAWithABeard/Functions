@@ -2,7 +2,7 @@
 .Synopsis
 A quick function to estimate the completion time of a SQL Statement
 .DESCRIPTION
-Runs some t-sql to gather osme information about requests from the sys.dm_exec_requests dmv to estimate the 
+Runs some t-sql to gather some information about requests from the sys.dm_exec_requests dmv to estimate the 
 amount of time remaining for a statement which can be filtered by BACKUP,RESTORE,INDEX,DBCC,STATS commands
 
 .PARAMETER Server
@@ -22,7 +22,8 @@ Returns SPID, Login Name,Domain, NTUserName,Database, %,START_TIME,STATUS,COMMAN
 .EXAMPLE
 When-WillThisSQLComplete -Server SQLServer1 -Commandtype Backup
 
-Returns SPID, Login Name,Domain, NTUserName,Database, %,START_TIME,STATUS,COMMAND,EST_COMP for all processes on SQLServer1
+Returns SPID, Login Name,Domain, NTUserName,Database, %,START_TIME,STATUS,COMMAND,EST_COMP for all processes where the command 
+includes Backup on SQLServer1
 
 .EXAMPLE
 When-WillThisSQLComplete -Server Fade2black -OGV
