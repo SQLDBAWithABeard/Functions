@@ -25,7 +25,6 @@
     Initial Release 06/03/2014
     Aliased for Show-DriveSizes 25/10/2014
     Updated with remoting capabilities 10/05/2015
-    Updated to use WSMan check - now I understand the error better 17/07/2016 
 #>
 #requires -Version 3 -Modules CimCmdlets
 function Get-DriveSize 
