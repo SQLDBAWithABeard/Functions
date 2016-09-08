@@ -70,13 +70,13 @@ param(
         ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true, 
     Position = 0)]
-    $Servers ,
+    [array]$Servers ,
 # Expected SQL Admin Account or an array of accounts
     [Parameter(Mandatory = $true, 
         ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true, 
     Position = 0)]
-    [string]$SQLAdmins ,
+    [array]$SQLAdmins ,
 # Default Backup Directory - Needs to match exactly including trailing slash if applicable
     [Parameter(Mandatory = $true, 
         ValueFromPipeline = $true,
@@ -264,18 +264,17 @@ param(
     [string]$LogSPBlitzToTableStartTime  
 )
 foreach($Server in $Servers)
-
     {
     if($Server.Contains('\'))
     {
     $ServerName = $Server.Split('\')[0]
+    $Instance = $Server.Split('\')[1]
     }
     else
     {
     $Servername = $Server
-    }
-
-   
+    $Instance = 'MSSQLSERVER'
+    } 
     ## Check for connectivity
       if((Test-Connection $ServerName -count 1 -Quiet) -eq $false){
        Write-Error "Could not connect to $ServerName"
@@ -287,15 +286,16 @@ foreach($Server in $Servers)
        else
        {Write-Error "PSRemoting is not enabled on $ServerName Please enable and retry"
        continue}
-
     Describe "$Server" {
         BeforeAll {
             $Scriptblock = {
             [pscustomobject]$Return = @{}
             $srv = ''
+            $Server = $Using:Server
             $SQLAdmins = $Using:SQLAdmins
             [void][reflection.assembly]::LoadWithPartialName('Microsoft.SqlServer.Smo');
             $srv = New-Object Microsoft.SQLServer.Management.SMO.Server $Server
+            $Return.SQLRegKey = (Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\$Instance" -ErrorAction SilentlyContinue)
             $Return.DBAAdminDb = $Srv.Databases.Name.Contains('DBA-Admin')
             $Logins = $srv.Logins.Where{$_.IsSystemObject -eq $false}.Name
             $Return.SQLAdmins = @(Compare-Object $Logins $SQLAdmins -SyncWindow 0).Length - $Logins.count -eq $SQLAdmins.Count
@@ -362,27 +362,38 @@ foreach($Server in $Servers)
         }
         if($connect -eq $false){break}
        It 'Should have SQL Server Installed' {  
-            $Scriptblock = {(Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQLServer' -ErrorAction SilentlyContinue)} 
-            $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
-            $State | Should Be $true
+            $Return.SQLRegKey | Should Be $true
         }
         } # End Context 
        Context 'Services'{
+        BeforeAll {
+        If($Instance -eq 'MSSQLSERVER')
+        {
+        $SQLService = $Instance
+        $AgentService = 'SQLSERVERAGENT'
+        }
+        else
+        {
+        $SQLService = "MSSQL$" + $Instance
+        $AgentService = "SQLAgent$" + $Instance
+        }
+        $MSSQLService = (Get-CimInstance -ClassName Win32_Service -Filter "Name = '$SQLService'" -CimSession $ServerName)
+        $SQLAgentService = (Get-CimInstance -ClassName Win32_Service -Filter "Name = '$AgentService'" -CimSession $ServerName)
+        }
         It 'SQL DB Engine should be running' {
-            (Get-Service -ComputerName $Server -Name MSSQLServer).Status | Should Be 'Running'
+            $MSSQLService.State | Should Be 'Running'
         }
         It 'SQL Db Engine should be Automatic Start' {
-            (Get-CimInstance -ClassName Win32_Service -Filter "Name = 'MSSQLServer'" -ComputerName $ServerName).StartMode |should be 'Auto'
+            $MSSQLService.StartMode |should be 'Auto'
         }
         It 'SQL Agent should be running' {
-            (Get-Service -ComputerName $ServerName -Name SQLServerAgent).Status | Should Be 'Running'
+            $SQLAgentService.State | Should Be 'Running'
         }
         It 'SQL Agent should be Automatic Start' {
-            (Get-CimInstance -ClassName Win32_Service -Filter "Name = 'SQLServerAgent'" -ComputerName $ServerName).StartMode |should be 'Auto'
+            $SQLAgentService.StartMode |should be 'Auto'
         }
         } # End Context 
-       Context 'FireWall' {
-    
+      <# Context 'FireWall' {   
         It 'Should have a Firewall connection for SQL Browser' {
             $Scriptblock = {Get-NetFirewallRule -Name 'SQL Browser Service - Allow'} 
             $State = Invoke-Command -ComputerName $ServerName -ScriptBlock $Scriptblock 
@@ -424,6 +435,8 @@ foreach($Server in $Servers)
             $State | Should Be 'C:\Program Files\Microsoft SQL Server\MSSQL11.MSSQLSERVER\MSSQL\Binn\sqlservr.exe'
         }
     } # End Context Firewall
+
+    #>
        Context 'Databases' {
             It 'Should have a DBA-Admin Database' {
             $Return.DbaAdminDB |Should Be $true
@@ -553,7 +566,7 @@ foreach($Server in $Servers)
         }
         It "Log SP_Blitz to Table Agent Job Should Be Scheduled" {
             $Return.LogSPBlitzToTableScheduled| Should Be $LogSPBlitzToTableScheduled
-       }
+        }
         It "Log SP_Blitz to Table Agent Job Should Be Scheduled $LogSPBlitzToTableSchedule" {
             $Return.LogSPBlitzToTableSchedule.Value| Should Be $LogSPBlitzToTableSchedule
         }
@@ -587,3 +600,4 @@ foreach($Server in $Servers)
 } # End Describe $Server
 }
 }
+
