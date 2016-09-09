@@ -95,7 +95,8 @@ Parameters = @{ Instance = $Instance;
 CheckForBackups =  $CheckForBackups;
 CheckForDBFolders =  $CheckForDBFolders;
 JobSuffix = $JobSuffix; 
-Share = $Share}
+Share = $Share;
+NoDatabaseRestoreTextFileCheck = $NoDatabaseRestoreTextFileCheck}
 }
 Invoke-Pester -Script $Script
 }
