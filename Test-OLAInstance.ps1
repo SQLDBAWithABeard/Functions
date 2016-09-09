@@ -46,7 +46,7 @@ function Test-OLAInstance
    jobs are enabled and have a schedule. It also checks for the Server1,Server2 and Server3 folders in the share and the existence of the Database Restore Text File
 
 .NOTES
-   AUTHOR - Rob Sewell https://sqldbawithabeard.com
+   AUTHOR - Rob Sewell https://sqldbawithabeard.com @SQLDBAWithBeard
    DATE - 07/09/2016
 #>
 #Requires -Modules Pester

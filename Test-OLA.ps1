@@ -15,7 +15,7 @@
 ## Share = '\\Server1\BackupShare1'}
 ## }
 ## Invoke-Pester -Script $Script
-## Author - Rob Sewell sqldbawithabeard
+## Author - Rob Sewell https://sqldbawithabeard.com @SQLDBAWithBeard
 ## Date - 06/09/2016
 
 #Requires -Modules Pester
@@ -125,7 +125,7 @@ Describe "Testing $Server Backup solution" {
                 If($srv.Databases[$db].AvailabilityGroupName)
                 {
                      $AG = $srv.Databases[$db].AvailabilityGroupName
-                     $Cluster = $Server.Split('N')[0]
+                     $Cluster = $srv.ClusterName
                      $OLAAg = $Cluster + '$' + $AG
                      $Root =  $Share + '\' + $OlaAG 
                 }
