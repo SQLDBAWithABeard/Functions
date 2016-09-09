@@ -115,7 +115,7 @@ Describe "Testing $Server Backup solution" {
         Test-Path $RestoreTXT | Should Be $true
         }
         It "Database Restore Text is less than 30 minutes old" {
-        ((Get-ChildItem $RestoreTXT).LastWriteTime -gt (Get-Date).AddMinutes(-30)) | Should Be $true
+        ((Get-ChildItem $RestoreTXT).LastWriteTime -lt (Get-Date).AddMinutes(-30)) | Should Be $true
         }
         }
         foreach($db in $dbs.Where{$_ -ne 'tempdb'})
