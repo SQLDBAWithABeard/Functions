@@ -3,9 +3,9 @@
 function Test-OLAInstance
 {
 <#
-.Synopsis
+.Synopsis 
    This function will run a Pester Test for backup solution using OLA Hallengrens maintenance solution
-.DESCRIPTION
+.DESCRIPTION 
    Tests an instance or a number of instances to ensure that the OLA Hallengren solution is set up correctly. That 
    all agent jobs exist, are schedeuled and were successful
    That the relevant folders for each database exist and that there are backups files in the folders

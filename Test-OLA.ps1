@@ -29,7 +29,7 @@ $CheckForBackups,
 $CheckForDBFolders,
 $JobSuffix ,
 $Share ,
-$NoDatabaseRestoreTextFileCheck
+[switch]$NoDatabaseRestoreTextFileCheck
 )
 
 foreach($server in $Instance)
@@ -37,6 +37,7 @@ foreach($server in $Instance)
 if($Server.contains('MSSQLSERVER'))
 {
 $Server = $Server.Split('\')[0]
+$Instance = $Server.Split('\')[1]
 }
 $Server = $Server.ToUpper()
 Describe "Testing $Server Backup solution" {
@@ -49,10 +50,18 @@ Describe "Testing $Server Backup solution" {
     $UserFull = $Jobs.Where{$_.Name -like 'DatabaseBackup - USER_DATABASES - FULL*' + $JobSuffix + '*'}
     $UserDiff = $Jobs.Where{$_.Name -like 'DatabaseBackup - USER_DATABASES - DIFF*' + $JobSuffix + '*'}
     $UserLog = $Jobs.Where{$_.Name -like 'DatabaseBackup - USER_DATABASES - LOG*' + $JobSuffix + '*'} 
+    if($Instance)
+    {
+        $DisplayName =  "SQL Server Agent ($instance)"
+    }
+    else
+    {
+        $DisplayName =  "SQL Server Agent (MSSQLSERVER)"
+    }
     }
     Context "New Backup Jobs on $Server" {
         It "Agent should be running" {
-        (Get-service -ComputerName $Server SQLSERVERAGENT).Status | Should Be 'Running'
+        (Get-service -ComputerName $Server -DisplayName $Agent).Status | Should Be 'Running'
         }
         foreach($job in $SysFull,$UserFull,$UserDiff,$USerLog)
         {
@@ -114,8 +123,11 @@ Describe "Testing $Server Backup solution" {
         $RestoreTXT = $Root + '\DatabaseRestore.txt'
         Test-Path $RestoreTXT | Should Be $true
         }
+        if (Test-Path $RestoreTXT -eq $true)
+        {
         It "Database Restore Text is less than 30 minutes old" {
         ((Get-ChildItem $RestoreTXT).LastWriteTime -lt (Get-Date).AddMinutes(-30)) | Should Be $true
+        }
         }
         }
         foreach($db in $dbs.Where{$_ -ne 'tempdb'})
@@ -134,7 +146,7 @@ Describe "Testing $Server Backup solution" {
                     $Root =  $Share + '\' + $Server
                 }
             }
-
+            $db = $db.Replace(' ','')
             $Dbfolder = $Root + "\$db"
             $Full = $Dbfolder + '\FULL'
             $Diff = $Dbfolder + '\DIFF'
@@ -144,13 +156,13 @@ Describe "Testing $Server Backup solution" {
             It "Should have a folder for $db database" {
             Test-Path $Dbfolder |Should Be $true
             }
-            if($Db -notin ('master','msdb','model') -and ($Srv.Databases[$db].RecoveryModel -ne 'Simple'))
+            if($Db -notin ('master','msdb','model') -and ($Srv.Databases[$db].RecoveryModel -ne 'Simple') -and ( $LSDatabases -notcontains $db))
             {
             It "has Full Diff and Log Folders" {
             (Test-Path $full , $log, $Diff).Where{$_ -eq $true}.Count | Should Be 3
             }
             } #
-            elseif(($Srv.Databases[$db].RecoveryModel -eq 'Simple') -and $Db -notin ('master','msdb','model'))
+            elseif(($Srv.Databases[$db].RecoveryModel -eq 'Simple') -and $Db -notin ('master','msdb','model') -or ( $LSDatabases -contains $db) )
             {
             It "has Full and Diff Folders" {
             (Test-Path $full , $Diff).Where{$_ -eq $true}.Count | Should Be 2
@@ -174,7 +186,7 @@ Describe "Testing $Server Backup solution" {
                 Get-ChildItem $Diff\*.bak | Select-Object -First 1 | Should Not BeNullOrEmpty
                 }
                 }
-                if (($Srv.Databases[$db].RecoveryModel -ne 'Simple') -and ($Db -notin ('master','msdb','model')))
+                if($Db -notin ('master','msdb','model') -and ($Srv.Databases[$db].RecoveryModel -ne 'Simple') -and ( $LSDatabases -notcontains $db))
                 {
                     It "Has Log Backups in the folder for $db" {
                     Get-ChildItem $Log\*.trn | Select-Object -First 1 | Should Not BeNullOrEmpty
