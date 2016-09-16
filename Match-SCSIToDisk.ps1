@@ -86,7 +86,7 @@ if (($VmView = Get-View -ViewType VirtualMachine -Filter @{"Name" = $Vm})) {
             $DiskInfo += $VirtualDisk
         }
     }
-    $DiskInfo | Out-GridView
+    $DiskInfo | Out-GridView -Title "$VM Disks on $VCServer"
 }
 else {Write-Warning "VM $Vm Not Found"}
 
