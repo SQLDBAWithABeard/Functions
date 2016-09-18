@@ -46,7 +46,13 @@ Describe "Testing $Server Backup solution" {
     $Jobs = Get-SqlAgentJob -ServerInstance $Server
     $srv = New-Object Microsoft.SQLServer.Management.SMO.Server $Server 
     $dbs = $Srv.Databases.Where{$_.status -eq 'Normal'}.name
-    $LSDatabases = XXXXXXX
+    $LSJobs = $srv.jobserver.jobs.where{$_.name -like 'LSBackup*'}.Name
+    $LSDatabases = @()
+    foreach ($Job in $LSJobs)
+    {
+        $LSDatabases += $Job.Split('_')[1]
+    } 
+
     if($InstanceName)
     {
         $DisplayName =  "SQL Server Agent ($InstanceName)"
