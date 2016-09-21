@@ -6,18 +6,20 @@
 ##
 ## To find out more Get-Help Test-OLAInstance
 ##
-## $Script = @{
-## Path = $Path;
-## Parameters = @{ Instance = Instance;
-## CheckForBackups =  $true;
-## CheckForDBFolders =  $true;
-## JobSuffix = 'BackupShare1'; 
-## Share = '\\Server1\BackupShare1'}
-## }
-## Invoke-Pester -Script $Script
+##$Script = @{
+##Path = $Path;
+##Parameters = @{ Instance = Instance;
+##CheckForBackups =  $true;
+##CheckForDBFolders =  $true;
+##JobSuffix = 'BackupShare1'; 
+##Share = '\\Server1\BackupShare1'
+##NoDatabaseRestoreCheck= $true;
+##DontCheckJobOutcome = $true}}
+##}
+##Invoke-Pester -Script $Script
 ## Author - Rob Sewell https://sqldbawithabeard.com @SQLDBAWithBeard
 ## Date - 06/09/2016
-
+#Requires –Version 4
 #Requires -Modules Pester
 #Requires -Modules sqlserver
 
@@ -29,108 +31,145 @@ $CheckForBackups,
 $CheckForDBFolders,
 $JobSuffix ,
 $Share ,
-[switch]$NoDatabaseRestoreTextFileCheck
+[switch]$NoDatabaseRestoreCheck,
+[switch]$DontCheckJobOutcome 
 )
 
 foreach($server in $Instance)
 {
-if($Server.contains('MSSQLSERVER'))
-{
-$Server = $Server.Split('\')[0]
-$Instance = $Server.Split('\')[1]
-}
-$Server = $Server.ToUpper()
+
+$ServerName = $Server.Split('\')[0]
+$InstanceName = $Server.Split('\')[1]
+$ServerName = $ServerName.ToUpper()
 Describe "Testing $Server Backup solution" {
     BeforeAll {
     $Jobs = Get-SqlAgentJob -ServerInstance $Server
-    $Root = $Share + '\' + $Server
     $srv = New-Object Microsoft.SQLServer.Management.SMO.Server $Server 
     $dbs = $Srv.Databases.Where{$_.status -eq 'Normal'}.name
-    $SysFull = $Jobs.Where{$_.Name -like 'DatabaseBackup - SYSTEM_DATABASES - FULL*' + $JobSuffix + '*'}
-    $UserFull = $Jobs.Where{$_.Name -like 'DatabaseBackup - USER_DATABASES - FULL*' + $JobSuffix + '*'}
-    $UserDiff = $Jobs.Where{$_.Name -like 'DatabaseBackup - USER_DATABASES - DIFF*' + $JobSuffix + '*'}
-    $UserLog = $Jobs.Where{$_.Name -like 'DatabaseBackup - USER_DATABASES - LOG*' + $JobSuffix + '*'} 
-    if($Instance)
+    $LSJobs = $srv.jobserver.jobs.where{$_.name -like 'LSBackup*'}.Name
+    $LSDatabases = @()
+    foreach ($Job in $LSJobs)
     {
-        $DisplayName =  "SQL Server Agent ($instance)"
+        $LSDatabases += $Job.Split('_')[1]
+    } 
+
+    if($InstanceName)
+    {
+        $DisplayName =  "SQL Server Agent ($InstanceName)"
+        $Folder = $ServerName + '$' + $InstanceName
     }
     else
     {
         $DisplayName =  "SQL Server Agent (MSSQLSERVER)"
+        $Folder = $ServerName
     }
     }
-    Context "New Backup Jobs on $Server" {
+    if($CheckForBackups -eq $true)
+    {
+      $CheckForDBFolders -eq $true
+    }
+    $Root = $Share + '\' + $Folder
+     
+    Context "New Backup Jobs on $server" {
         It "Agent should be running" {
-        (Get-service -ComputerName $Server -DisplayName $Agent).Status | Should Be 'Running'
+        (Get-service -ComputerName $ServerName -DisplayName $DisplayName).Status | Should Be 'Running'
         }
-        foreach($job in $SysFull,$UserFull,$UserDiff,$USerLog)
+        $Jobs = $Jobs.Where{($_.Name -like 'DatabaseBackup - SYSTEM_DATABASES - FULL*' + $JobSuffix + '*') -or ($_.Name -like 'DatabaseBackup - USER_DATABASES - FULL*' + $JobSuffix + '*') -or ($_.Name -like 'DatabaseBackup - USER_DATABASES - DIFF*' + $JobSuffix + '*') -or ($_.Name -like 'DatabaseBackup - USER_DATABASES - LOG*' + $JobSuffix + '*')}
+        foreach($job in $Jobs)
         {
-        $JobName = $Job.Name
-        It "$JobName Job Exists" {
-        $Job | Should Not BeNullOrEmpty
-        }
-        It "$JobName Job is enabled" {
-        $job.IsEnabled | Should Be 'True'
-        }
-        It "$JobName Job has schedule" {
-        $Job.HasSchedule | Should Be 'True'
-        }
-        It "$JobName Job succeeded" {
-        $Job.LastRunOutCome | Should Be 'Succeeded'
-        }
-        It "$JobName Job has 2 JobSteps" {
-        $Job.Jobsteps.Count | Should Be 2
-        }
-        It "$JobName Job has Generate Restore Script Job Step" {
-        $Job.JobSteps[1].Name | Should  Be 'Generate Restore Script'
-        }
+          $JobName = $Job.Name
+          It "$JobName Job Exists" {
+          $Job | Should Not BeNullOrEmpty
+          }
+          It "$JobName Job is enabled" {
+          $job.IsEnabled | Should Be 'True'
+          }
+          It "$JobName Job has schedule" {
+          $Job.HasSchedule | Should Be 'True'
+          }
+          if($DontCheckJobOutcome -eq $false)
+          {
+            It "$JobName Job succeeded" {
+            $Job.LastRunOutCome | Should Be 'Succeeded'
+            }
+          }
+          if($NoDatabaseRestoreCheck -eq $false)
+          {
+            It "$JobName Job has 2 JobSteps" {
+            $Job.Jobsteps.Count | Should Be 2
+            }
+            It "$JobName Job has Generate Restore Script Job Step" {
+            $Job.JobSteps[1].Name | Should  Be 'Generate Restore Script'
+            }
+          }
         }# foreach jobs
         } # end context new backup jobs
-    Context "Other Maintenance Jobs on $Server" {
-        It "Should have System Database Integrity Check Job" {
-        $Jobs.Where{$_.Name -eq 'DatabaseIntegrityCheck - SYSTEM_DATABASES'} | Should Not BeNullOrEmpty
-        }
-        It "Should have User Database Integrity Check Job" {
-        $Jobs.Where{$_.Name -eq 'DatabaseIntegrityCheck - USER_DATABASES'} | Should Not BeNullOrEmpty
-        }
-        It "Should have User Database Index Optimisation Job" {
-        $Jobs.Where{$_.Name -eq 'IndexOptimize - USER_DATABASES'} | Should Not BeNullOrEmpty
-        }
+    Context "Other Maintenance Jobs on $Instance" {
+        $Jobs = $Jobs.Where{($_.Name -eq 'DatabaseIntegrityCheck - SYSTEM_DATABASES') -or ($_.Name -eq 'DatabaseIntegrityCheck - USER_DATABASES') -or ($_.Name -eq 'IndexOptimize - USER_DATABASES')}
+          foreach($job in $Jobs)
+          {
+            $JobName = $Job.Name
+            It "$JobName Job Exists" {
+            $Job | Should Not BeNullOrEmpty
+            }
+            It "$JobName Job is enabled" {
+            $job.IsEnabled | Should Be 'True'
+            }
+            It "$JobName Job has schedule" {
+            $Job.HasSchedule | Should Be 'True'
+            }
+            if($DontCheckJobOutcome -eq $false)
+            {
+              It "$JobName Job succeeded" {
+              $Job.LastRunOutCome | Should Be 'Succeeded'
+              }
+            }
+          }# foreach jobs
        
     } # end context other maintenanace jobs
-    Context "OLA cleanup jobs on $Server" {
-        It "Should have Output File Cleanup Job" {
-        $Jobs.Where{$_.Name -eq 'Output File Cleanup'} | Should Not BeNullOrEmpty
-        }
-        It "Should have CommandLog Cleanup Job" {
-        $Jobs.Where{$_.Name -eq 'CommandLog Cleanup'} | Should Not BeNullOrEmpty
-        }
-        It "Should have sp_delete_backuphistory Job" {
-        $Jobs.Where{$_.Name -eq 'sp_delete_backuphistory'} | Should Not BeNullOrEmpty
-        }
-        It "Should have sp_purge_jobhistory Job" {
-        $Jobs.Where{$_.Name -eq 'sp_purge_jobhistory'} | Should Not BeNullOrEmpty
-        }                
-        
-    } # end ola clean up jobs 
-    Context "$Share Share on $Server" {
+    Context "OLA cleanup jobs on $Instance" {
+        $Jobs = $Jobs.Where{($_.Name -eq 'Output File Cleanup') -or ($_.Name -eq 'CommandLog Cleanup') -or ($_.Name -eq 'sp_delete_backuphistory') -or ($_.Name -eq 'sp_purge_jobhistory')}
+         foreach($job in $Jobs)
+          {
+            $JobName = $Job.Name
+            It "$JobName Job Exists" {
+            $Job | Should Not BeNullOrEmpty
+            }
+            It "$JobName Job is enabled" {
+            $job.IsEnabled | Should Be 'True'
+            }
+            It "$JobName Job has schedule" {
+            $Job.HasSchedule | Should Be 'True'
+            }
+            if($DontCheckJobOutcome -eq $false)
+            {
+              It "$JobName Job succeeded" {
+              $Job.LastRunOutCome | Should Be 'Succeeded'
+              }
+            }
+          }# foreach jobs           
+        } # end ola clean up jobs 
+    
+    Context "$Share Share For $Server" {
         It "Should have the root folder $Root" {
         Test-Path $Root | Should Be $true
         }
-        if($NoDatabaseRestoreTextFileCheck -eq $false)
+        if($NoDatabaseRestoreCheck -eq $false)
         {
         It "Database Restore Text file exists" {
         $RestoreTXT = $Root + '\DatabaseRestore.txt'
-        Test-Path $RestoreTXT | Should Be $true
+        $Check = Test-Path $RestoreTXT 
+        $Check| Should Be $true
         }
-        if (Test-Path $RestoreTXT -eq $true)
+        if ($Check-eq $true)
         {
         It "Database Restore Text is less than 30 minutes old" {
         ((Get-ChildItem $RestoreTXT).LastWriteTime -lt (Get-Date).AddMinutes(-30)) | Should Be $true
         }
         }
         }
-        foreach($db in $dbs.Where{$_ -ne 'tempdb'})
+        }
+                foreach($db in $dbs.Where{$_ -ne 'tempdb'})
         {
           if($Srv.VersionMajor -ge 11)
             {
@@ -153,48 +192,76 @@ Describe "Testing $Server Backup solution" {
             $Log  = $Dbfolder + '\LOG'
             If($CheckForDBFolders -eq $True)
             {
+            Context "Folder Check for $db on $Share" {
             It "Should have a folder for $db database" {
             Test-Path $Dbfolder |Should Be $true
             }
             if($Db -notin ('master','msdb','model') -and ($Srv.Databases[$db].RecoveryModel -ne 'Simple') -and ( $LSDatabases -notcontains $db))
             {
-            It "has Full Diff and Log Folders" {
-            (Test-Path $full , $log, $Diff).Where{$_ -eq $true}.Count | Should Be 3
+            It "Has a Full Folder" {
+                [System.IO.Directory]::Exists($Full) | Should Be $True
+            }
+            It "Has a Diff Folder" {
+                [System.IO.Directory]::Exists($Diff) | Should Be $True
+            }
+            It "Has a Log Folder" {
+                [System.IO.Directory]::Exists($Log) | Should Be $True
             }
             } #
             elseif(($Srv.Databases[$db].RecoveryModel -eq 'Simple') -and $Db -notin ('master','msdb','model') -or ( $LSDatabases -contains $db) )
             {
-            It "has Full and Diff Folders" {
-            (Test-Path $full , $Diff).Where{$_ -eq $true}.Count | Should Be 2
-            }            
+            It "Has a Full Folder" {
+            [System.IO.Directory]::Exists($Full) | Should Be $True
+            }
+            It "Has a Diff Folder" {
+                [System.IO.Directory]::Exists($Diff) | Should Be $True
+            }           
             } #
             else
             {
-            It "has a Full Folder" {
-            Test-Path $full | Should Be $true
-            } 
+            It "Has a Full Folder" {
+                [System.IO.Directory]::Exists($Full) | Should Be $True
+            }
             }#
             } # End Check for db folders
+            }
             If($CheckForBackups -eq $true)
             {
-                It "Has Full Backups in the folder for $db" {
-                Get-ChildItem $Full\*.bak | Select-Object -First 1  | Should Not BeNullOrEmpty
+            Context " File Check For $db on $Share" {  
+                    $Fullcreate = [System.IO.Directory]::GetCreationTime($Full)
+                    $FullWrite = [System.IO.Directory]::GetLastWriteTime($Full) 
+                It "Has Files in the FULL folder for $db" {
+                    $FullCreate | Should BeLessThan $FullWrite
+                }
+                It "Full File Folder was written to within the last 7 days" {
+                $Fullwrite |Should BeGreaterThan (Get-Date).AddDays(-7)
                 }
                 if($Db -notin ('master','msdb','model'))
                 {
-                It "Has Diff Backups in the folder for $db" {
-                Get-ChildItem $Diff\*.bak | Select-Object -First 1 | Should Not BeNullOrEmpty
+                    $Diffcreate = [System.IO.Directory]::GetCreationTime($Diff)
+                    $DiffWrite = [System.IO.Directory]::GetLastWriteTime($Diff)
+                It "Has Files in the DIFF folder for $db" {
+                    $DiffCreate | Should BeLessThan $DiffWrite
+                }
+                It "Diff File Folder was written to within the last 24 Hours" {
+                $Diffwrite |Should BeGreaterThan (Get-Date).AddHours(-24)
                 }
                 }
                 if($Db -notin ('master','msdb','model') -and ($Srv.Databases[$db].RecoveryModel -ne 'Simple') -and ( $LSDatabases -notcontains $db))
-                {
-                    It "Has Log Backups in the folder for $db" {
-                    Get-ChildItem $Log\*.trn | Select-Object -First 1 | Should Not BeNullOrEmpty
-                }
+            {
+                    $Logcreate = [System.IO.Directory]::GetCreationTime($Log)
+                    $LogWrite = [System.IO.Directory]::GetLastWriteTime($Log)
+                    It "Has Files in the LOG folder for $db" { 
+                    $LogCreate | Should BeLessThan $LogWrite
+                    }
+                    It "Log File Folder was written to within the last 30 minutes" {
+                    $Logwrite |Should BeGreaterThan (Get-Date).AddMinutes(-30) 
+                    }
                 }# Simple Recovery
+            }
             }# Check for backups
-        }
 
     } # End share context
 }#end describe
 }
+
