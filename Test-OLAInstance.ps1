@@ -11,30 +11,30 @@ function Test-OLAInstance
    That the relevant folders for each database exist and that there are backups files in the folders
    It uses the Test-Ola.ps1 file You will need to add the path to Test-Ola.ps1 on Line 90
 .EXAMPLE
-   Test-OLAInstance -Instance 'Server1'
+   Test-OLAInstance -Instance 'Server1' -Share '\\UNCPath'
 
    This will check that the SQL Agent is running on Server1, That there are Ola Hallengren maintenance solution agent jobs on Server1. That the
    jobs are enabled and have a schedule. It also checks for the Server1 folder in the share and the existence of the Database Restore Text File
 .EXAMPLE
-   Test-OLAInstance -Instance 'Server1' -CheckForDBFolders
+   Test-OLAInstance -Instance 'Server1'  -Share '\\UNCPath' -CheckForDBFolders
 
    This will check that the SQL Agent is running on Server1, That there are Ola Hallengren maintenance solution agent jobs on Server1. That the
    jobs are enabled and have a schedule. It also checks for the Server1 folder in the share and the existence of the Database Restore Text File
    It checks that for each database the required FULL,DIFF or LOG folders exist
 .EXAMPLE 
-   Test-OLAInstance -Instance Server1 -CheckForDBFolders -CheckForBackups
+   Test-OLAInstance -Instance Server1 -Share '\\UNCPath' -CheckForDBFolders -CheckForBackups
 
    This will check that the SQL Agent is running on Server1, That there are Ola Hallengren maintenance solution agent jobs on Server1. That the
    jobs are enabled and have a schedule. It also checks for the Server1 folder in the share and the existence of the Database Restore Text File
    It checks that for each database the required FULL,DIFF or LOG folders exist and that they have a .bak or a .trn file in them
 .EXAMPLE
-   Test-OLAInstance -Instance Server1 -CheckForDBFolders -CheckForBackups -JobSuffix 'TheBeard'
+   Test-OLAInstance -Instance Server1 -Share '\\UNCPath' -CheckForDBFolders -CheckForBackups -JobSuffix 'TheBeard'
 
    This will check that the SQL Agent is running on Server1, That there are Ola Hallengren maintenance solution agent jobs on Server1 with a Job
    Suffix of TheBeard. That the jobs are enabled and have a schedule. It also checks for the Server1 folder in the share and the existence of the 
    Database Restore Text File. It checks that for each database the required FULL,DIFF or LOG folders exist and that they have a .bak or a .trn file in them
 .EXAMPLE 
-    Test-OLAInstance -Instance 'Server1','Server2','Server3'
+    Test-OLAInstance -Instance 'Server1','Server2','Server3' -Share '\\UNCPath' -DontCheckJobOutcome 
    
    This will check that the SQL Agent is running on Server1,Server2 and Server3, That there are Ola Hallengren maintenance solution agent jobs on Server1,Server2 and Server3. That the
    jobs are enabled and have a schedule. It also checks for the Server1,Server2 and Server3 folders in the share and the existence of the Database Restore Text File
@@ -43,7 +43,7 @@ function Test-OLAInstance
     Test-OLAInstance -Instance $Servers
    
    This will check that the SQL Agent is running on the servers returned from a query against the dbareports, That there are Ola Hallengren maintenance solution agent jobs on Server1,Server2 and Server3. That the
-   jobs are enabled and have a schedule. It also checks for the Server1,Server2 and Server3 folders in the share and the existence of the Database Restore Text File
+   jobs are enabled and have a schedule but not that they succeeeded. It also checks for the Server1,Server2 and Server3 folders in the share and the existence of the Database Restore Text File
 
 .NOTES
    AUTHOR - Rob Sewell https://sqldbawithabeard.com @SQLDBAWithBeard
@@ -68,10 +68,11 @@ Param(
         [Parameter(Mandatory=$false)]
         [switch]$CheckForDBFolders,
         # The Job Suffix for the OLA backup jobs
+        [Parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [String]$JobSuffix,
         # The name of the OLA backup share 
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
         [string]$Share,
