@@ -63,11 +63,12 @@ Describe "Testing $Server Backup solution" {
         $DisplayName =  "SQL Server Agent (MSSQLSERVER)"
         $Folder = $ServerName
     }
-    }
-    if($CheckForBackups -eq $true)
+        if($CheckForBackups -eq $true)
     {
       $CheckForDBFolders -eq $true
     }
+    }
+
     $Root = $Share + '\' + $Folder
      
     Context "New Backup Jobs on $server" {
@@ -148,8 +149,7 @@ Describe "Testing $Server Backup solution" {
               }
             }
           }# foreach jobs           
-        } # end ola clean up jobs 
-    
+        } # end ola clean up jobs  
     Context "$Share Share For $Server" {
         It "Should have the root folder $Root" {
         Test-Path $Root | Should Be $true
@@ -192,7 +192,7 @@ Describe "Testing $Server Backup solution" {
             $Log  = $Dbfolder + '\LOG'
             If($CheckForDBFolders -eq $True)
             {
-            Context "Folder Check for $db on $Share" {
+            Context "Folder Check for $db on $Server on $Share" {
             It "Should have a folder for $db database" {
             Test-Path $Dbfolder |Should Be $true
             }
@@ -227,11 +227,20 @@ Describe "Testing $Server Backup solution" {
             }
             If($CheckForBackups -eq $true)
             {
-            Context " File Check For $db on $Share" {  
+            Context " File Check For $db on $Server on $Share" {  
                     $Fullcreate = [System.IO.Directory]::GetCreationTime($Full)
                     $FullWrite = [System.IO.Directory]::GetLastWriteTime($Full) 
+                if($Fullcreate -eq $FullWrite)
+                    {
+                        It "Has Files in the FULL folder for $db" {
+                        Get-ChildItem $Full\*.bak | Should Not BeNullOrEmpty
+                        }
+                    }
+                    else
+                    {
                 It "Has Files in the FULL folder for $db" {
                     $FullCreate | Should BeLessThan $FullWrite
+                    }
                 }
                 It "Full File Folder was written to within the last 7 days" {
                 $Fullwrite |Should BeGreaterThan (Get-Date).AddDays(-7)
@@ -240,9 +249,19 @@ Describe "Testing $Server Backup solution" {
                 {
                     $Diffcreate = [System.IO.Directory]::GetCreationTime($Diff)
                     $DiffWrite = [System.IO.Directory]::GetLastWriteTime($Diff)
-                It "Has Files in the DIFF folder for $db" {
+                    if($Diffcreate -eq $DiffWrite)
+                    {
+                        It "Has Files in the DIFF folder for $db" {
+                        Get-ChildItem $Diff\*.bak | Should Not BeNullOrEmpty
+                        }
+                    }
+                    else
+                    {
+                    It "Has Files in the DIFF folder for $db" {
                     $DiffCreate | Should BeLessThan $DiffWrite
-                }
+                        }
+                    }
+ 
                 It "Diff File Folder was written to within the last 24 Hours" {
                 $Diffwrite |Should BeGreaterThan (Get-Date).AddHours(-24)
                 }
@@ -251,8 +270,17 @@ Describe "Testing $Server Backup solution" {
             {
                     $Logcreate = [System.IO.Directory]::GetCreationTime($Log)
                     $LogWrite = [System.IO.Directory]::GetLastWriteTime($Log)
-                    It "Has Files in the LOG folder for $db" { 
-                    $LogCreate | Should BeLessThan $LogWrite
+                    if($Logcreate -eq $LogWrite)
+                    {
+                        It "Has Files in the LOG folder for $db" { 
+                        Get-ChildItem $Log\*.trn | Should Not BeNullOrEmpty
+                        }
+                    }
+                    else
+                    {
+                        It "Has Files in the LOG folder for $db" { 
+                        $LogCreate | Should BeLessThan $LogWrite
+                        }
                     }
                     It "Log File Folder was written to within the last 30 minutes" {
                     $Logwrite |Should BeGreaterThan (Get-Date).AddMinutes(-30) 
