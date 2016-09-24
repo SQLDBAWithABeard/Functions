@@ -113,7 +113,7 @@ Describe "Testing $Server Backup solution" {
           }
         }# foreach jobs
         } # end context new backup jobs
-    Context "Other Maintenance Jobs on $Instance" {
+    Context "Other Maintenance Jobs on $Server" {
         $Jobs = $Jobs.Where{($_.Name -eq 'DatabaseIntegrityCheck - SYSTEM_DATABASES') -or ($_.Name -eq 'DatabaseIntegrityCheck - USER_DATABASES') -or ($_.Name -eq 'IndexOptimize - USER_DATABASES')}
           foreach($job in $Jobs)
           {
