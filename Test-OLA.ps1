@@ -69,7 +69,15 @@ Describe "Testing $Server Backup solution" {
     }
     }
 
+        if($Share.StartsWith('\\') -eq $False)
+    {
+      $UNC = $Share.Replace(':','$')
+      $Root = '\\' + $ServerName + '\' + $UNC + '\' + $Folder
+    }
+    else
+    {
     $Root = $Share + '\' + $Folder
+    }
      
     Context "New Backup Jobs on $server" {
         It "Agent should be running" {
