@@ -136,7 +136,7 @@ Describe "Testing $Server Backup solution" {
           }# foreach jobs
        
     } # end context other maintenanace jobs
-    Context "OLA cleanup jobs on $Instance" {
+    Context "OLA cleanup jobs on $Server" {
         $Jobs = $Jobs.Where{($_.Name -eq 'Output File Cleanup') -or ($_.Name -eq 'CommandLog Cleanup') -or ($_.Name -eq 'sp_delete_backuphistory') -or ($_.Name -eq 'sp_purge_jobhistory')}
          foreach($job in $Jobs)
           {
