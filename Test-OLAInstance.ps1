@@ -44,11 +44,19 @@ function Test-OLAInstance
    
    This will check that the SQL Agent is running on the servers returned from a query against the dbareports, That there are Ola Hallengren maintenance solution agent jobs on Server1,Server2 and Server3. That the
    jobs are enabled and have a schedule but not that they succeeeded. It also checks for the Server1,Server2 and Server3 folders in the share and the existence of the Database Restore Text File
+.EXAMPLE 
+    $Servers = (Invoke-Sqlcmd -ServerInstance dbareports -Database dbareports -Query "Select Servername from dbo.InstanceList where Environment = 'Development' and Inactive = 0 and NotContactable = 0").ServerName
+    Test-OLAInstance -Instance $Servers -Report
+   
+   This will check that the SQL Agent is running on the servers returned from a query against the dbareports, That there are Ola Hallengren maintenance solution agent jobs on Server1,Server2 and Server3. That the
+   jobs are enabled and have a schedule but not that they succeeeded. It also checks for the Server1,Server2 and Server3 folders in the share and the existence of the Database Restore Text File
+   It will also download the ReportUnit Exe if it doesnt exist and create an HTML Report
 
 .NOTES
    AUTHOR - Rob Sewell https://sqldbawithabeard.com @SQLDBAWithBeard
    DATE - 07/09/2016
 #>
+#requires -Version 5
 #Requires -Modules Pester
 #Requires -Modules sqlserver
 [CmdletBinding()]
@@ -81,11 +89,11 @@ Param(
         [switch]$NoDatabaseRestoreCheck,
         # A switch to not perform the test if the Job succeeded
         [Parameter(Mandatory=$false)]
-        [switch]$DontCheckJobOutcome 
+        [switch]$DontCheckJobOutcome ,
+        # A switch to output a report HTML
+        [Parameter(Mandatory=$false)]
+        [switch]$Report 
 )
-
-
-
 
 
 $Path = 'Git:\Functions\Test-OLA.ps1'
@@ -99,5 +107,30 @@ Share = $Share;
 NoDatabaseRestoreCheck = $NoDatabaseRestoreCheck;
 DontCheckJobOutcome  = $DontCheckJobOutcome }
 }
+if($Report)
+{
+$Date = Get-Date -Format ddMMyyyHHmmss
+$File = $tempFolder + '\Script_Pester_Report_' + $date
+$XML = $File + '.xml'
+$HTML = $file + '.html'
+Invoke-Pester -Script $Script -OutputFile $xml -OutputFormat NUnitXml
+$tempFolder = 'c:\temp'
+Push-Location $tempFolder
+#download and extract ReportUnit.exe
+$url = 'http://relevantcodes.com/Tools/ReportUnit/reportunit-1.2.zip'
+$fullPath = Join-Path $tempFolder $url.Split("/")[-1]
+$reportunit = $tempFolder + '\reportunit.exe'
+if((Test-Path $reportunit) -eq $false)
+{
+(New-Object Net.WebClient).DownloadFile($url,$fullPath)
+Expand-Archive -Path $fullPath -DestinationPath $tempFolder
+}
+#run reportunit against report.xml and display result in browser
+& .\reportunit.exe $XML
+ii $HTML
+}
+else
+{
 Invoke-Pester -Script $Script
+}
 }
