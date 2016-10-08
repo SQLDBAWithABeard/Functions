@@ -110,8 +110,8 @@ DontCheckJobOutcome  = $DontCheckJobOutcome }
 if($Report)
 {
 $Date = Get-Date -Format ddMMyyyHHmmss
-$File = $tempFolder + '\Script_Pester_Report_' + $date
 $tempFolder = 'c:\temp'
+$File = $tempFolder + '\Script_Pester_Report_' + $date
 $XML = $File + '.xml'
 $HTML = $file + '.html'
 Invoke-Pester -Script $Script -OutputFile $xml -OutputFormat NUnitXml
