@@ -67,8 +67,6 @@ Describe "Testing $Server Backup solution" {
     {
       $CheckForDBFolders -eq $true
     }
-    }
-
         if($Share.StartsWith('\\') -eq $False)
     {
       $UNC = $Share.Replace(':','$')
@@ -76,8 +74,11 @@ Describe "Testing $Server Backup solution" {
     }
     else
     {
-    $Root = $Share + '\' + $Folder
+      $Root = $Share + '\' + $Folder
     }
+    }
+
+
      
     Context "New Backup Jobs on $server" {
         It "Agent should be running" {
@@ -177,8 +178,9 @@ Describe "Testing $Server Backup solution" {
         }
         }
         }
-                foreach($db in $dbs.Where{$_ -ne 'tempdb'})
+        foreach($db in $dbs.Where{$_ -ne 'tempdb'})
         {
+ 
           if($Srv.VersionMajor -ge 11)
             {
                 If($srv.Databases[$db].AvailabilityGroupName)
@@ -186,11 +188,27 @@ Describe "Testing $Server Backup solution" {
                      $AG = $srv.Databases[$db].AvailabilityGroupName
                      $Cluster = $srv.ClusterName
                      $OLAAg = $Cluster + '$' + $AG
-                     $Root =  $Share + '\' + $OlaAG 
+                    if($Share.StartsWith('\\') -eq $False)
+                    {
+                      $UNC = $Share.Replace(':','$')
+                      $Root = '\\' + $ServerName + '\' + $UNC + '\' + $OlaAG 
+                    }
+                    else
+                    {
+                      $Root = '\\' + $ServerName + '\' + $UNC + '\' + $Folder
+                    }
                 }
                 else
                 {
-                    $Root =  $Share + '\' + $Server
+                  if($Share.StartsWith('\\') -eq $False)
+                    {
+                      $UNC = $Share.Replace(':','$')
+                      $Root = '\\' + $ServerName + '\' + $UNC + '\' + $Folder
+                    }
+                    else
+                    {
+                      $Root = $Share + '\' + $Folder
+                    }
                 }
             }
             $db = $db.Replace(' ','')
