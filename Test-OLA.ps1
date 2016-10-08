@@ -211,8 +211,8 @@ Describe "Testing $Server Backup solution" {
                     }
                 }
             }
-            $db = $db.Replace(' ','')
-            $Dbfolder = $Root + "\$db"
+            $dbfoldername = $db.Replace(' ','')
+            $Dbfolder = $Root + "\$dbfoldername"
             $Full = $Dbfolder + '\FULL'
             $Diff = $Dbfolder + '\DIFF'
             $Log  = $Dbfolder + '\LOG'
