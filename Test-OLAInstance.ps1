@@ -111,10 +111,10 @@ if($Report)
 {
 $Date = Get-Date -Format ddMMyyyHHmmss
 $File = $tempFolder + '\Script_Pester_Report_' + $date
+$tempFolder = 'c:\temp'
 $XML = $File + '.xml'
 $HTML = $file + '.html'
 Invoke-Pester -Script $Script -OutputFile $xml -OutputFormat NUnitXml
-$tempFolder = 'c:\temp'
 Push-Location $tempFolder
 #download and extract ReportUnit.exe
 $url = 'http://relevantcodes.com/Tools/ReportUnit/reportunit-1.2.zip'
