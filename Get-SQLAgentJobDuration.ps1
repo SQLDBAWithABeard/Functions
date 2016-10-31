@@ -1,4 +1,35 @@
-﻿  Function Get-SQLAgentJobDuration
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID 5ebeb3ec-36b0-4dad-a3e3-bbff1ffcbfd7
+
+.AUTHOR Rob Sewell
+
+.COMPANYNAME Sewells Consulting
+
+.COPYRIGHT Rob Sewell - please credit Rob Sewell - https://sqldbawithbeard.com if used
+
+.DESCRIPTION Returns the Job Duration for an agent job on an instance
+
+.TAGS SQL,SQL Agent Jobs, Duration
+
+.LICENSEURI 
+
+.PROJECTURI
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES sqlserver
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES Initial
+#>
+#Requires -Module sqlserver
+Function Get-SQLAgentJobDuration
 {
 <#
 .Synopsis
