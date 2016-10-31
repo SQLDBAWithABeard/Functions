@@ -44,7 +44,7 @@ param
             $AttributeCollection.Add($ParameterAttribute)
 
             # Generate and set the ValidateSet 
-            $arrSet = (Get-SQLAgentJob -ServerInstance $Server).Name
+            $arrSet = (Get-SQLAgentJob -ServerInstance $Instance).Name
             $ValidateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute -ArgumentList ($arrSet)
 
             # Add the ValidateSet to the attributes collection
