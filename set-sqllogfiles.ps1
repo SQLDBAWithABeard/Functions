@@ -1,4 +1,36 @@
-﻿ function Set-SQLLogFiles
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID edba8ac2-e4d8-471a-b4ca-7fae59ee3ac4
+
+.AUTHOR Rob Sewell
+
+.DESCRIPTION
+   Uses SMO to set the number of Log files for a single or group of SQL Servers
+      
+.COMPANYNAME 
+
+.COPYRIGHT 
+
+.TAGS SQL Error log SQL Server
+
+.LICENSEURI 
+
+.PROJECTURI 
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES 
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+#>
+function Set-SQLLogFiles
  {
  <#
 .Synopsis
@@ -25,6 +57,7 @@ The number of logfiles to set
 .NOTES
     Author - Rob Sewell SQLDBAWithABeard.com
 #>
+
  param(
  [object]$instances,
  [ValidateRange(0,99)]
