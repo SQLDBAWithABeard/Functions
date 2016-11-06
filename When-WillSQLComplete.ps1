@@ -1,4 +1,35 @@
-﻿<#
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID e113cd95-5822-4114-89c8-8293422b655a
+
+.AUTHOR Rob Sewell
+
+.DESCRIPTION Runs some t-sql to gather some information about requests from the sys.dm_exec_requests dmv to estimate the amount of time remaining for a statement which can be filtered by BACKUP,RESTORE,INDEX,DBCC,STATS commands
+      
+.COMPANYNAME 
+
+.COPYRIGHT 
+
+.TAGS SQL, Queries, Commands, Time, When Will SQL Complete
+
+.LICENSEURI 
+
+.PROJECTURI 
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES 
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+#>
+<#
 .Synopsis
 A quick function to estimate the completion time of a SQL Statement
 .DESCRIPTION

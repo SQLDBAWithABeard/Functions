@@ -1,4 +1,35 @@
-﻿<#
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID 730f1621-25a7-4503-886d-625695f1dd06
+
+.AUTHOR Rob Sewell
+
+.DESCRIPTION Function to run a series of Pester tests for SQL Defaults against a server or array of servers
+      
+.COMPANYNAME 
+
+.COPYRIGHT 
+
+.TAGS SQL, Pester, Defaults, SQL Server
+
+.LICENSEURI 
+
+.PROJECTURI 
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES 
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+#>
+<#
     .Synopsis
     Function to run a series of Pester tests for SQL Defaults against a server or array of servers
     .DESCRIPTION

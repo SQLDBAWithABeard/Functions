@@ -1,3 +1,34 @@
+<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID 5a165df0-c30a-4147-b252-975dbd2a6b2d
+
+.AUTHOR Rob Sewell
+
+.DESCRIPTION This function will show the Instances and the Port Numbers on a SQL Server using WMI and the status of the relevant SQL Service and its start mode
+      
+.COMPANYNAME 
+
+.COPYRIGHT 
+
+.TAGS SQL, Instance, Port Numbers, Service Accounts
+
+.LICENSEURI 
+
+.PROJECTURI 
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES 
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+#>
 <# 
 .SYNOPSIS  
      Shows the Instances and the Port Numbers and SQL Service Status and Start mode on a SQL Server

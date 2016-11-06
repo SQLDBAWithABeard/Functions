@@ -1,4 +1,35 @@
-﻿## This script will check the status of the SQL Servers OLA set up including all agent jobs, folders and existence of backup files
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID e900b08e-5e27-47ab-b407-462b409696ae
+
+.AUTHOR Rob Sewell
+
+.DESCRIPTION This script will check the status of the SQL Servers OLA set up including all agent jobs, folders and existence of backup files
+      
+.COMPANYNAME 
+
+.COPYRIGHT 
+
+.TAGS SQL, Ola Hallengren, Backup, Pester, Test, OVF
+
+.LICENSEURI 
+
+.PROJECTURI 
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES sqlserver
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+#>
+## This script will check the status of the SQL Servers OLA set up including all agent jobs, folders and existence of backup files
 ## Whilst you can call this script directly using Invoke-Pester and a script block as shown below it should be called with
 ##
 ## function Test-OLAInstance
