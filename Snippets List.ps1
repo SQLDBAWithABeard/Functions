@@ -72,3 +72,51 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
+
+$snippet = @{
+ Title = 'Prompt for input'
+ Description = 'Simple way of gathering input from users with simple yes and no'
+ Text = @"
+ 	# Get some input from users  
+	`$title = "Put your Title Here" 
+	`$message = "Put Your Message here (Y/N)" 
+	`$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Will continue" 
+	`$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Will exit" 
+	`$options = [System.Management.Automation.Host.ChoiceDescription[]](`$yes, `$no) 
+	`$result = `$host.ui.PromptForChoice(`$title, `$message, `$options, 0) 
+	 
+	if (`$result -eq 1) 
+    { Write-Output "User pressed no!"}
+    elseif (`$result -eq 0) 
+    { Write-Output "User pressed yes!"}
+"@
+}
+New-IseSnippet @snippet
+
+$snippet = @{
+ Title = 'Run SQL query with SMO'
+ Description = 'creates SMO object and runs a sql command'
+ Text = @"
+`$srv = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList `$Server
+`$SqlConnection = `$srv.ConnectionContext
+`$SqlConnection.StatementTimeout = 8000
+`$SqlConnection.ConnectTimeout = 10
+`$SqlConnection.Connect()
+`$Results = `$SqlConnection.ExecuteWithResults(`$Query).Tables
+`$SqlConnection.Disconnect()
+"@
+}
+New-IseSnippet @snippet
+
+$snippet = @{
+ Title = 'SQL Assemblies'
+ Description = 'SQL Assemblies'
+ Text = @"
+[void][reflection.assembly]::LoadWithPartialName( "Microsoft.SqlServer.Management.Common" );
+[void][reflection.assembly]::LoadWithPartialName( "Microsoft.SqlServer.SmoEnum" );
+[void][reflection.assembly]::LoadWithPartialName( "Microsoft.SqlServer.Smo" );
+[void][reflection.assembly]::LoadWithPartialName( "Microsoft.SqlServer.SmoExtended " );
+[void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.ConnectionInfo") 
+"@
+}
+New-IseSnippet @snippet
