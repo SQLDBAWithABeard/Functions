@@ -1,39 +1,8 @@
-﻿<#PSScriptInfo
-
-.VERSION 1.0
-
-.GUID 7c5ca05d-c0dd-45c7-b850-c20d8565c5fd
-
-.AUTHOR Rob Sewell
-
-.COMPANYNAME Sewells Consulting
-
-.COPYRIGHT Rob Sewell - please credit Rob Sewell - https://sqldbawithbeard.com if used
-
-.DESCRIPTION This function returns the output file value for each step in an agent job
-
-.TAGS SQL,SQL Agent Jobs, Duration
-
-.LICENSEURI 
-
-.PROJECTURI
-
-.ICONURI 
-
-.EXTERNALMODULEDEPENDENCIES sqlserver
-
-.REQUIREDSCRIPTS 
-
-.EXTERNALSCRIPTDEPENDENCIES 
-
-.RELEASENOTES Initial
-#>
-#Requires -Module sqlserver
-Function Get-SQLAgentJobOutPutFile
+﻿Function Get-SQLAgentJobOutPutFile
 {
 <#
 .Synopsis
-   Returns the Output File for each step of an agent job with the Job Names provided dynamically 
+   Returns the OutPut File for each step of an agent job with the Job Names provided dynamically 
 .DESCRIPTION
    This function returns the output file value for each step in an agent job with the Job Names provided dynamically 
 .EXAMPLE
@@ -104,9 +73,16 @@ param
     }
     foreach($Step in $Job.JobSteps)
     {
-    $fileName = $Step.OutputFileName
-    $Name = '\\' + $Server + '\' + $Filename.Replace(':','$')
-    Write-Output $Name
+        $fileName = $Step.OutputFileName
+        if($fileName -eq '')
+        {
+            Write-Output "$($step.Name) has no output file"
+        }
+        else
+        {
+        $Name = '\\' + $Server + '\' + $Filename.Replace(':','$')
+        Write-Output "$($step.Name) - $Name"
+        }
     }
 }
 end{}
