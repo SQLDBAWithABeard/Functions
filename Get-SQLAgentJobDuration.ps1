@@ -72,7 +72,14 @@ param
         [switch]$CSV,
         # Path for CSV
         [Parameter(Mandatory=$false,HelpMessage='Path for CSV')]
-        [object]$Path
+        [object]$Path,
+        # Midnight (gets all the job history information generated after midnight) 
+        # Yesterday (gets all the job history information generated in the last 24 hours) 
+        # LastWeek (gets all the job history information generated in the last week) 
+        # LastMonth (gets all the job history information generated in the last month)
+        [Parameter(Mandatory=$false,HelpMessage='The Since Parameter')]
+        [ValidateSet('Midnight', 'Yesterday', 'LastWeek' , 'LastMonth')]
+        [String]$Since
         )
 DynamicParam {
             # Set the dynamic parameters' name
@@ -111,8 +118,15 @@ begin {
         $FormattedDuration = @{Name = 'FormattedDuration';Expression = {[timespan]$_.RunDuration.ToString().PadLeft(6,'0').insert(4,':').insert(2,':')}}
         } 
 Process {
-$JObs = (Get-SQLAgentJobHistory -ServerInstance $Instances).Where{$_.JoBName -eq $JobName}
-$Result = $Jobs.Where{$_.Stepid -eq 0} | Select Server, JobName,RunDate,$FormattedDuration 
+if(!$Since)
+{
+$JObs = (Get-SQLAgentJobHistory -ServerInstance $Instances -JobName $JobName).Where{$_.Stepid -eq 0}
+}
+else
+{
+$JObs = (Get-SQLAgentJobHistory -ServerInstance $Instances -JobName $JobName -Since $Since).Where{$_.Stepid -eq 0}
+}
+$Result = $Jobs | Select Server, JobName,RunDate,$FormattedDuration 
 }
 End {
     if($CSV)
