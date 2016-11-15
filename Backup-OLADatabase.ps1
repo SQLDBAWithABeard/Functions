@@ -1,4 +1,35 @@
-﻿<#
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID e690e558-357e-43fb-9bcf-5c39b33ce527
+
+.AUTHOR Rob Sewell
+
+.DESCRIPTION This function will perform an ad-hoc backup using OLA Hallengrens solution - It doesnot expose all of the capabilities but is useful for quick backups when needed Note the Database paramter is dynamically filled once you type it
+      
+.COMPANYNAME 
+
+.COPYRIGHT 
+
+.TAGS SQL, Ola Hallengren, Backup
+
+.LICENSEURI 
+
+.PROJECTURI 
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES 
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+#>
+<#
 .Synopsis
    To perform an ad-hoc backup using OLA Hallengrens solution
 .DESCRIPTION

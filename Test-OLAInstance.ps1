@@ -1,4 +1,35 @@
-﻿# You will need to add the path to Test-Ola.ps1 on Line 90
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID fee80eda-3390-4396-9a2b-478c81c2267f
+
+.AUTHOR Rob Sewell
+
+.DESCRIPTION Tests an instance or a number of instances to ensure that the OLA Hallengren solution is set up correctly. That all agent jobs exist, are schedeuled and were successful That the relevant folders for each database exist and that there are backups files in the folders It uses the Test-Ola.ps1 file You will need to add the path to Test-Ola.ps1 on Line 90
+      
+.COMPANYNAME 
+
+.COPYRIGHT 
+
+.TAGS SQL, Ola Hallengren, Backup, Pester, Test, OVF
+
+.LICENSEURI 
+
+.PROJECTURI 
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES sqlserver
+
+.REQUIREDSCRIPTS Test-Ola
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+#>
+# You will need to add the path to Test-Ola.ps1 on Line 90
 
 function Test-OLAInstance
 {
