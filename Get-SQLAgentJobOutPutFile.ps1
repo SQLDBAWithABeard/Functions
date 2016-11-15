@@ -80,8 +80,15 @@ param
         }
         else
         {
-        $Name = '\\' + $Server + '\' + $Filename.Replace(':','$')
-        Write-Output "$($step.Name) - $Name"
+            if($FileName.StartsWith('\\') -eq $false)
+            {
+                $Name = '\\' + $Server + '\' + $Filename.Replace(':','$')
+                Write-Output "$($step.Name) - $Name"
+            }
+            else
+            {
+                Write-Output "$($step.Name) - $Name"
+            }
         }
     }
 }
