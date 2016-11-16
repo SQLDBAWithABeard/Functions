@@ -33,10 +33,10 @@
     $srv = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $Instance
     if(!$Top)
     {
-        $srv.databases | Sort-Object -Descending size|Select-Object Name , Size
+        $srv.databases.Where{$_.IsAccessible -eq $true} | Sort-Object -Descending size|Select-Object Name , Size
     }
     else
     {
-        $srv.databases | Sort-Object -Descending size|Select-Object Name , Size -First $Top
+        $srv.databases.Where{$_.IsAccessible -eq $true} | Sort-Object -Descending size|Select-Object Name , Size -First $Top
     }
 }
