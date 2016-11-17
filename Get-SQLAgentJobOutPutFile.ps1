@@ -87,7 +87,7 @@ param
             }
             else
             {
-                Write-Output "$($step.Name) - $Name"
+                Write-Output "$($step.Name) - $fileName "
             }
         }
     }
