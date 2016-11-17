@@ -13,6 +13,10 @@
    Get-DBADatabaseSize -Instance SERVER -Top 3
 
    Returns the database names and sizes in Mb ordered by size for the 3 largest databases on SERVER
+.EXAMPLE
+   Get-DBADatabaseSize SERVER  3
+
+   Returns the database names and sizes in Mb ordered by size for the 3 largest databases on SERVER
 .OUTPUTS
    Database object
 .NOTES
