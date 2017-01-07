@@ -1,4 +1,34 @@
-﻿function Get-DBADatabaseSize
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID 12e32036-c18e-4bce-b74f-3270c8f216c3
+
+.AUTHOR Rob Sewell
+
+.COMPANYNAME Sewells Consulting
+
+.COPYRIGHT Rob Sewell - please credit Rob Sewell - https://sqldbawithbeard.com if used
+
+.DESCRIPTION returns a database smo object of the size of the databases on an instance in Mb and enables top N if required
+
+.TAGS SQL,Database, Size
+
+.LICENSEURI 
+
+.PROJECTURI
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES sqlserver
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES Initial
+#>
+function Get-DBADatabaseSize
 {
 <#
 .Synopsis

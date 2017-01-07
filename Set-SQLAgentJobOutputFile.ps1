@@ -1,4 +1,35 @@
-﻿Function Set-SQLAgentJobOutPutFile
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID 3e7f98de-b43d-4890-80dd-377256abc7db
+
+.AUTHOR Rob Sewell
+
+.COMPANYNAME Sewells Consulting
+
+.COPYRIGHT Rob Sewell - please credit Rob Sewell - https://sqldbawithbeard.com if used
+
+.DESCRIPTION Sets the OutputFile for a SQL Agent Job Step
+
+.TAGS SQL,SQL Agent Jobs, OutPutFile
+
+.LICENSEURI 
+
+.PROJECTURI
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES sqlserver
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES Initial
+#>
+#Requires -Module sqlserver
+Function Set-SQLAgentJobOutPutFile
 {
 <#
 .Synopsis

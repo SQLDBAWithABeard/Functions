@@ -1,4 +1,34 @@
-﻿function Get-DBAErrorLogPath
+﻿<#PSScriptInfo
+
+.VERSION 1.0
+
+.GUID ed045950-8973-45e1-bb1d-af4464fd1eed
+
+.AUTHOR Rob Sewell
+
+.COMPANYNAME Sewells Consulting
+
+.COPYRIGHT Rob Sewell - please credit Rob Sewell - https://sqldbawithbeard.com if used
+
+.DESCRIPTION returns the SQL or Agent Error log paths for a SQL Server
+
+.TAGS SQL,SQL Agent, ErrorLog, Path
+
+.LICENSEURI 
+
+.PROJECTURI
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES 
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES Initial
+#>
+function Get-DBAErrorLogPath
 {
 <#
 .Synopsis
