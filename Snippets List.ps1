@@ -120,3 +120,80 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
+
+
+ New-IseSnippet @snippet
+ #formatted duration snippet
+ $snippet = @{
+ Title = 'Bulk copy from data table'
+ Description = 'Loads a database table from a data table with a bcp'
+ Text = @"
+`$sqlserver = ''
+`$database = ''
+`$table = ''
+`$batchsize = 5000
+
+
+
+# Build the sqlbulkcopy connection, and set the timeout to infinite
+`$connectionstring = "Data Source=`$sqlserver;Integrated Security=true;Initial Catalog=`$database;"
+`$bulkcopy = New-Object Data.SqlClient.SqlBulkCopy(`$connectionstring, [System.Data.SqlClient.SqlBulkCopyOptions]::TableLock)
+`$bulkcopy.DestinationTableName = `$table
+`$bulkcopy.bulkcopyTimeout = 0
+`$bulkcopy.batchsize = `$batchsize
+
+`$bulkcopy.WriteToServer(`$datatable)
+`$datatable.Clear()
+"@
+}
+
+$snippet = @{
+ Title = 'WSMan Test and CIM instead of WMI'
+ Description = 'Creates a CiM Session depending on the results of the WSMan test'
+ Text = @"
+## Servername
+`$Server = ''
+
+## Test for WSMan
+`$WSMAN = Test-WSMan `$Server
+
+## Change Protocol if needed for CimSession
+
+if(`$WSMAN.ProductVersion.Contains('Stack: 2.0'))
+{
+    `$opt = New-CimSessionOption -Protocol Dcom
+    `$s = New-CimSession -ComputerName `$Server -SessionOption `$opt
+}
+else
+{
+    `$s = New-CimSession -ComputerName `$Server
+}
+
+## Do your funky CIM stuff
+Get-CimInstance -ClassName Win32_OperatingSystem -CimSession `$s| select LastBootUpTime 
+"@
+}
+New-IseSnippet @snippet
+
+$snippet = @{
+ Title = 'Max Length of Datatable'
+ Description = 'Takes a datatable object and iterates through it to get the max length of the string columns - useful for data loads'
+ Text = @"
+`$columns = (`$datatable | Get-Member -MemberType Property).Name
+foreach(`$column in `$Columns)
+{
+`$max = 0
+    foreach (`$a in `$datatable)
+    {
+        if(`$max -lt `$a.`$column.length)
+        {
+            `$max = `$a.`$column.length
+        }
+    
+    }
+    Write-Output "`$column max length is `$max"
+}
+
+"@
+}
+New-IseSnippet @snippet
