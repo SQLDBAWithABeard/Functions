@@ -137,9 +137,7 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
-<<<<<<< HEAD
 }
-=======
 
 
  New-IseSnippet @snippet
@@ -227,5 +225,4 @@ $snippet = @{
 }
 New-IseSnippet @snippet
 
-
-
+## A test
