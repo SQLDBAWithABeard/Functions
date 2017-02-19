@@ -12,3 +12,4 @@ Contains useful functions that I use and am able to share.
 [When-WillSQLComplete](When-WillSQLComplete.ps1) -  Quick function to check progress of SQL Commands via sys.dm_exec_requests. Useful for                                                     DBCC, Backup, Restore and indexing progress
 
 [Test-OLAInstance](Test-OLAInstance.ps1) - Wrapper to call a Pester Test script [Test-OLA](Test-OLA.ps1) to test Ola Hallengren Maintenance Solution is installed correctly
+

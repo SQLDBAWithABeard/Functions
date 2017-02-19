@@ -1,7 +1,9 @@
 ﻿## A list of snippets
-
+$snips = Get-IseSnippet
 # Create a new snippet snippet!
 
+if(!$snips.Where{$_.Name -like 'New-Snippet*'})
+{
 $snippet1 = @{
  Title = 'New-Snippet'
  Description = 'Create a New Snippet'
@@ -17,9 +19,10 @@ New-IseSnippet @snippet
 "@
 }
 New-IseSnippet @snippet1 –Force
-
+}
 # SMO Snippet
-
+if(!$snips.Where{$_.Name -like 'SMO-Server*'})
+{
 $snippet = @{
  Title = 'SMO-Server'
  Description = 'Creates a SQL Server SMO Object'
@@ -28,9 +31,10 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
-
+}
 ## Data table snippet
-
+if(!$snips.Where{$_.Name -like 'New-DataTable*'})
+{
 $snippet = @{
  Title = 'New-DataTable'
  Description = 'Creates a Data Table Object'
@@ -58,7 +62,11 @@ $snippet = @{
 "@
  }
  New-IseSnippet @snippet
+ }
+
  #formatted duration snippet
+ if(!$snips.Where{$_.Name -like 'Formatted Duration*'})
+{
  $snippet = @{
  Title = 'Formatted Duration'
  Description = 'Formats Get-SQLAgentJobHistory into timespan'
@@ -72,7 +80,10 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
+}
 
+if(!$snips.Where{$_.Name -like 'Prompt for*'})
+{
 $snippet = @{
  Title = 'Prompt for input'
  Description = 'Simple way of gathering input from users with simple yes and no'
@@ -92,7 +103,10 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
+}
 
+if(!$snips.Where{$_.Name -like 'Run SQL query with SMO*'})
+{
 $snippet = @{
  Title = 'Run SQL query with SMO'
  Description = 'creates SMO object and runs a sql command'
@@ -107,7 +121,10 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
+}
 
+if(!$snips.Where{$_.Name -like 'SQL Assemblies*'})
+{
 $snippet = @{
  Title = 'SQL Assemblies'
  Description = 'SQL Assemblies'
@@ -120,3 +137,4 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
+}
