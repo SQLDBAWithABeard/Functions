@@ -225,7 +225,31 @@ $snippet = @{
 }
 New-IseSnippet @snippet
 
-# Test
-## Again
-## Yet agin
+$snippet = @{
+Title = "New Excel Object";
+Description = "Creates a New Excel Object";
+Text = @"
+# Create a .com object for Excel
+`$xl = new-object -comobject excel.application
+`$xl.Visible = `$true # Set this to False when you run in production
+`$wb = `$xl.Workbooks.Add() # Add a workbook
+ 
+`$ws = `$wb.Worksheets.Item(1) # Add a worksheet
+ 
+`$cells=`$ws.Cells
 
+Do Some Stuff
+ 
+perhaps
+ 
+`$cells.item(`$row,`$col)="Server"
+`$cells.item(`$row,`$col).font.size=16
+`$Cells.item(`$row,`$col).Columnwidth = 10
+`$col++
+
+ 
+`$wb.Saveas("C:\temp\Test`$filename.xlsx")
+`$xl.quit()
+"@
+}
+New-IseSnippet @snippet
