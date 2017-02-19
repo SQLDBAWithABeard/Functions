@@ -225,3 +225,4 @@ $snippet = @{
 }
 New-IseSnippet @snippet
 
+# Test
