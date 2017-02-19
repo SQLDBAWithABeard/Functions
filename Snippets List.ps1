@@ -228,4 +228,3 @@ New-IseSnippet @snippet
 # Test
 ## Again
 ## Yet agin
-## This time
