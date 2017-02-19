@@ -229,4 +229,3 @@ New-IseSnippet @snippet
 ## Again
 ## Yet agin
 ## This time
-## once more with feeling
