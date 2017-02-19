@@ -217,4 +217,12 @@ foreach(`$column in `$Columns)
 "@
 }
 New-IseSnippet @snippet
->>>>>>> d608c6a55c2a887bb1a8a4e3ab9da7362b921a5d
+
+$snippet = @{
+ Title = 'Start a stopwatch'
+ Description = 'Starts a stopwatch'
+ Text = @"
+ `$sw = [diagnostics.stopwatch]::StartNew()
+"@
+}
+New-IseSnippet @snippet
