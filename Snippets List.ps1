@@ -273,24 +273,24 @@ New-IseSnippet @snippet
 
 if(!$snips.Where{$_.Name -like 'SQL Authentication SMO*'})
 {
-    $snippet = @{
+ $snippet = @{
  Title = 'SQL Authentication SMO'
  Description = 'SQL Authentication SMO'
  Text = @"
 
-$sqllogin = Get-Credential 
-$srv = New-Object Microsoft.SqlServer.Management.Smo.Server $server
-$server.ConnectionContext.LoginSecure = $false
-$server.ConnectionContext.set_Login($sqllogin.username)
-$server.ConnectionContext.set_SecurePassword($sqllogin.Password)
+`$sqllogin = Get-Credential 
+`$srv = New-Object Microsoft.SqlServer.Management.Smo.Server `$server
+`$srv.ConnectionContext.LoginSecure = `$false
+`$srv.ConnectionContext.set_Login(`$sqllogin.username)
+`$srv.ConnectionContext.set_SecurePassword(`$sqllogin.Password)
  
 try 
 { 
-$server.ConnectionContext.Connect() 
+`$srv.ConnectionContext.Connect() 
 } 
 catch 
 { 
-throw "Can't connect to $servername or access denied. Quitting." 
+throw "Can't connect to `$server or access denied. Quitting." 
 }
 "@
 }
