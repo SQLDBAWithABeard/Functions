@@ -139,8 +139,8 @@ $snippet = @{
 New-IseSnippet @snippet
 }
 
-
- New-IseSnippet @snippet
+if(!$snips.Where{$_.Name -like 'Bulk copy from data table*'})
+{
  #formatted duration snippet
  $snippet = @{
  Title = 'Bulk copy from data table'
@@ -164,7 +164,11 @@ New-IseSnippet @snippet
 `$datatable.Clear()
 "@
 }
+New-IseSnippet $snippet
+}
 
+if(!$snips.Where{$_.Name -like 'WSMan Test and CIM instead of WMI*'})
+{
 $snippet = @{
  Title = 'WSMan Test and CIM instead of WMI'
  Description = 'Creates a CiM Session depending on the results of the WSMan test'
@@ -192,7 +196,10 @@ Get-CimInstance -ClassName Win32_OperatingSystem -CimSession `$s| select LastBoo
 "@
 }
 New-IseSnippet @snippet
+}
 
+if(!$snips.Where{$_.Name -like 'Max Length of Datatable*'})
+{
 $snippet = @{
  Title = 'Max Length of Datatable'
  Description = 'Takes a datatable object and iterates through it to get the max length of the string columns - useful for data loads'
@@ -215,7 +222,11 @@ foreach(`$column in `$Columns)
 "@
 }
 New-IseSnippet @snippet
+}
 
+
+if(!$snips.Where{$_.Name -like 'Start a stopwatch*'})
+{
 $snippet = @{
  Title = 'Start a stopwatch'
  Description = 'Starts a stopwatch'
@@ -224,7 +235,11 @@ $snippet = @{
 "@
 }
 New-IseSnippet @snippet
+}
 
+
+if(!$snips.Where{$_.Name -like 'New Excel Object*'})
+{
 $snippet = @{
 Title = "New Excel Object";
 Description = "Creates a New Excel Object";
@@ -253,3 +268,31 @@ perhaps
 "@
 }
 New-IseSnippet @snippet
+}
+
+
+if(!$snips.Where{$_.Name -like 'SQL Authentication SMO*'})
+{
+    $snippet = @{
+ Title = 'SQL Authentication SMO'
+ Description = 'SQL Authentication SMO'
+ Text = @"
+
+$sqllogin = Get-Credential 
+$srv = New-Object Microsoft.SqlServer.Management.Smo.Server $server
+$server.ConnectionContext.LoginSecure = $false
+$server.ConnectionContext.set_Login($sqllogin.username)
+$server.ConnectionContext.set_SecurePassword($sqllogin.Password)
+ 
+try 
+{ 
+$server.ConnectionContext.Connect() 
+} 
+catch 
+{ 
+throw "Can't connect to $servername or access denied. Quitting." 
+}
+"@
+}
+New-IseSnippet @snippet
+}
