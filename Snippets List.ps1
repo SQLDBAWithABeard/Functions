@@ -136,16 +136,15 @@ $snippet = @{
 [void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.ConnectionInfo") 
 "@
 }
-New-IseSnippet @snippet
+New-IseSnippet $snippet
 }
 
 if(!$snips.Where{$_.Name -like 'Bulk copy from data table*'})
 {
- #formatted duration snippet
- $snippet = @{
+$snippet = @{
  Title = 'Bulk copy from data table'
- Description = 'Loads a database table from a data table with a bcp'
- Text = @"
+ Description = 'Bulk copy from data table'
+ Text =  @"
 `$sqlserver = ''
 `$database = ''
 `$table = ''
@@ -164,9 +163,8 @@ if(!$snips.Where{$_.Name -like 'Bulk copy from data table*'})
 `$datatable.Clear()
 "@
 }
-New-IseSnippet $snippet
+New-IseSnippet @snippet
 }
-
 if(!$snips.Where{$_.Name -like 'WSMan Test and CIM instead of WMI*'})
 {
 $snippet = @{
@@ -292,6 +290,22 @@ catch
 { 
 throw "Can't connect to `$server or access denied. Quitting." 
 }
+"@
+}
+New-IseSnippet @snippet
+}
+
+if(!$snips.Where{$_.Name -like 'Simple Create Database*'})
+{
+$snippet = @{
+ Title = 'Simple Create Database'
+ Description = 'SImple SMO code to create a database'
+ Text = @"
+##Create a database
+`$server = ''
+`$DBName = 'TheBeardsDatabase'
+`$db = New-Object Microsoft.SqlServer.Management.Smo.Database `$Server, `$DBName
+`$db.Create()
 "@
 }
 New-IseSnippet @snippet
