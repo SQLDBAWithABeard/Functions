@@ -310,3 +310,23 @@ $snippet = @{
 }
 New-IseSnippet @snippet
 }
+
+if(!$snips.Where{$_.Name -like 'Create a database Role*'})
+{
+$snippet = @{
+ Title = 'Create a database Role'
+ Description = 'Simple SMO to create a Database Role'
+ Text = @"
+##Create a role
+`$server = ''
+`$DBName = ''
+`$RoleName = ''
+`$srv = New-Object Microsoft.SqlServer.Management.Smo.Server `$Server
+`$db = `$srv.Databases[`$DBName]
+`$Role = New-Object Microsoft.SqlServer.Management.Smo.DatabaseRole `$db, `$RoleName
+`$Role.Create()
+
+"@
+}
+New-IseSnippet @snippet
+}
