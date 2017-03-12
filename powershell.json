@@ -1,0 +1,254 @@
+{
+/*
+	These are PowerShell snippets whcih you can use in Visual Studio "Create Database using SMO and defaults"
+	To use them click File --> Preferences --> User Snippets and type PowerShell
+	or edit $env:\appdata\code\user\snippets\powershell.json
+	In general and in order I converted exisitng snippets like this
+		Replace `$ with $$    
+		Replace \ with \\
+		Replace " with \"
+		\r for new line
+		\t for tab
+		Each line in ""
+		, at the end of each line in the body	except the last one 
+		Look out for red or green squiggles :-)	
+*/
+	"SMO-Server": {
+		"prefix": "SMO-Server",
+		"body": [
+			"$$srv = New-Object Microsoft.SqlServer.Management.Smo.Server $$Server"
+		],
+		"description": "Creates a SQL Server SMO Object"
+	},
+
+	"DataTable": {
+		"prefix": "DataTable",
+		"body": [
+			 "# Create Table Object",
+ "$$table = New-Object system.Data.DataTable $$TableName",
+  
+ "\r# Create Columns",
+ "$$col1 = New-Object system.Data.DataColumn NAME1,([string])",
+ "$$col2 = New-Object system.Data.DataColumn NAME2,([decimal])",
+  
+ "\r#Add the Columns to the table",
+ "$$table.columns.add($$col1)",
+ "$$table.columns.add($$col2)",
+  
+ "\r# Create a new Row",
+ "$$row = $$table.NewRow() ",
+  
+ "\r# Add values to new row",
+ "$$row.Name1 = 'VALUE'",
+ "$$row.NAME2 = 'VALUE'",
+  
+ "\r#Add new row to table",
+ "$$table.Rows.Add($$row)"
+		],
+		"description": "Creates a Data Table Object"
+	},
+		"Formatted Duration": {
+		"prefix": "Formatted Duration",
+		"body": [
+			"$$FormattedDuration = @{",
+    "\tName       = 'FormattedDuration'",
+    "\tExpression = {",
+      "\t\t[timespan]$$_.RunDuration.ToString().PadLeft(6,'0').insert(4,':').insert(2,':')",
+    "\t}",
+    "}"
+		],
+		"description": "Formats Get-SQLAgentJobHistory into timespan"
+	},
+	"Prompt for input": {
+		"prefix": "Prompt for input",
+		"body": [
+			"# Get some input from users ",
+"$$title = \"Put your Title Here\" ",
+"$$message = \"Put Your Message here (Y/N)\" ",
+"$$yes = New-Object System.Management.Automation.Host.ChoiceDescription \"&Yes\", \"Will continue\" ",
+"$$no = New-Object System.Management.Automation.Host.ChoiceDescription \"&No\", \"Will exit\" ",
+"$$options = [System.Management.Automation.Host.ChoiceDescription[]]($$yes, $$no) ",
+"$$result = $$host.ui.PromptForChoice($$title, $$message, $$options, 0) ",
+"\r",
+"if ($$result -eq 1) { ",
+"\tWrite-Output \"User pressed no!\"",
+"}",
+"elseif ($$result -eq 0){ ",
+"\tWrite-Output \"User pressed yes!\"",
+"}"
+		],
+		"description": "Simple way of gathering input from users with simple yes and no"
+	},
+		"Run SQL query with SMO": {
+		"prefix": "SQL query with SMO",
+		"body": [
+			"$$srv = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $$Server",
+			"$$SqlConnection = $$srv.ConnectionContext",
+			"$$SqlConnection.StatementTimeout = 8000",
+			"$$SqlConnection.ConnectTimeout = 10",
+			"$$SqlConnection.Connect()",
+			"$$Results = $$SqlConnection.ExecuteWithResults($$Query).Tables",
+			"$$SqlConnection.Disconnect()"
+		],
+		"description": "creates SMO object and runs a sql command"
+	},
+	"SQL Assemblies": {
+		"prefix": "SQL Assemblies",
+		"body": [
+			"[void][reflection.assembly]::LoadWithPartialName( \"Microsoft.SqlServer.Management.Common\" );",
+			"[void][reflection.assembly]::LoadWithPartialName( \"Microsoft.SqlServer.SmoEnum\" );",
+			"[void][reflection.assembly]::LoadWithPartialName( \"Microsoft.SqlServer.Smo\" );",
+			"[void][reflection.assembly]::LoadWithPartialName( \"Microsoft.SqlServer.SmoExtended \" );",
+			"[void][System.Reflection.Assembly]::LoadWithPartialName(\"Microsoft.SqlServer.ConnectionInfo\") "
+		],
+		"description": "Loads the SQL Assemblies"
+	},
+		"Bulk copy from data table": {
+		"prefix": "Bulk copy from data table",
+		"body": [
+			"$$sqlserver = ''",
+			"$$database = ''",
+			"$$table = ''",
+			"$$batchsize = 5000",
+			"\r",
+			"# Build the sqlbulkcopy connection, and set the timeout to infinite",
+			"$$connectionstring = \"Data Source=$$sqlserver;Integrated Security=true;Initial Catalog=$$database;\"",
+			"$$bulkcopy = New-Object Data.SqlClient.SqlBulkCopy($$connectionstring, [System.Data.SqlClient.SqlBulkCopyOptions]::TableLock)",
+			"$$bulkcopy.DestinationTableName = $$table",
+			"$$bulkcopy.bulkcopyTimeout = 0",
+			"$$bulkcopy.batchsize = $$batchsize",
+			"$$bulkcopy.WriteToServer($$datatable)",
+			"$$datatable.Clear()"
+		],
+		"description": "Bulk copy from data table"
+	},
+	"WSMan Test and CIM instead of WMI": {
+		"prefix": "WSMan Test and CIM instead of WMI",
+		"body": [
+            "## Servername",
+            "$$Server = ''",
+            "\r",
+            "## Test for WSMan",
+            "$$WSMAN = Test-WSMan $$Server",
+            "\r",
+            "## Change Protocol if needed for CimSession",
+            "if($$WSMAN.ProductVersion.Contains('Stack: 2.0')) {",
+            "\t$$opt = New-CimSessionOption -Protocol Dcom",
+            "\t$$s = New-CimSession -ComputerName $$Server -SessionOption $$opt",
+            "}",
+            "else {",
+            "\t$$s = New-CimSession -ComputerName $$Server",
+            "}",
+            "\r",
+            "## Do your funky CIM stuff",
+            "Get-CimInstance -ClassName Win32_OperatingSystem -CimSession $$s| select LastBootUpTime "
+		],
+		"description": "Creates a CiM Session depending on the results of the WSMan test"
+	},
+	"Max Length of Datatable": {
+		"prefix": "Max Length of Datatable",
+		"body": [
+            "$$columns = ($$datatable | Get-Member -MemberType Property).Name",
+            "foreach($$column in $$Columns) {",
+            "    $$max = 0",
+            "    foreach ($$a in $$datatable){",
+            "        if($$max -lt $$a.$$column.length){",
+            "            $$max = $$a.$$column.length",
+            "        }",  
+            "    }",
+            "    Write-Output \"$$column max length is $$max\"",
+            "}"
+		],
+		"description": "Takes a datatable object and iterates through it to get the max length of the string columns - useful for data loads"
+	},
+	"stopWatch": {
+		"prefix": "Stopwatch",
+		"body": [
+            "$$sw = [diagnostics.stopwatch]::StartNew()"
+		],
+		"description": "Starts a stopwatch"
+	},
+	"New Excel Object": {
+		"prefix": "Excel Object",
+		"body": [
+        "# Create a .com object for Excel",
+        "$$xl = new-object -comobject excel.application",
+        "$$xl.Visible = $$true # Set this to False when you run in production",
+        "$$wb = $$xl.Workbooks.Add() # Add a workbook ",
+        "$$ws = $$wb.Worksheets.Item(1) # Add a worksheet",
+        "$$cells=$$ws.Cells",
+        "\r ",
+        "Do Some Stuff",
+        "\r ",
+        "perhaps",
+        "\r  ",
+        "$$cells.item($$row,$$col)=\"Server\"",
+        "$$cells.item($$row,$$col).font.size=16",
+        "$$Cells.item($$row,$$col).Columnwidth = 10",
+        "$$col++",
+        "\r",
+        "$$wb.Saveas(\"C:\\temp\\Test$$filename.xlsx\")",
+        "$$xl.quit()"
+		],
+		"description": "Creates a New Excel Object"
+	},
+	"SQL Authentication SMO": {
+		"prefix": "SQL Authentication SMO",
+		"body": [
+           	"$$sqllogin = Get-Credential ",
+            "$$srv = New-Object Microsoft.SqlServer.Management.Smo.Server $$server",
+            "$$srv.ConnectionContext.LoginSecure = $$false",
+            "$$srv.ConnectionContext.set_Login($$sqllogin.username)",
+            "$$srv.ConnectionContext.set_SecurePassword($$sqllogin.Password)",
+            "\r",
+            "try { ",
+            "\t$$srv.ConnectionContext.Connect() ",
+            "} ",
+            "catch { ",
+            "\tthrow \"Can't connect to $$server or access denied. Quitting.\" ",
+            "}"
+		],
+		"description": "Creates a SQL Authentication SMO Server Object"
+	},
+	"Simple Create Database": {
+		"prefix": "Database - Create with SMO",
+		"body": [
+            "##Create a database",
+            "$$server = ''",
+            "$$DBName = 'TheBeardsDatabase'",
+            "$$db = New-Object Microsoft.SqlServer.Management.Smo.Database $$Server, $$DBName",
+            "$$db.Create()"
+		],
+		"description": "Create Database using SMO and defaults"
+	},
+	"Create a database Role": {
+		"prefix": "Role - Database Create with SMO",
+		"body": [
+            "##Create a role",
+            "$$server = ''",
+            "$$DBName = ''",
+            "$$RoleName = ''",
+            "$$srv = New-Object Microsoft.SqlServer.Management.Smo.Server $$Server",
+            "$$db = $$srv.Databases[$$DBName]",
+            "$$Role = New-Object Microsoft.SqlServer.Management.Smo.DatabaseRole $$db, $$RoleName",
+            "$$Role.Create()"
+		],
+		"description": "Simple SMO to create a Database Role"
+	}
+}
+
+/*
+	// Place your snippets for PowerShell here. Each snippet is defined under a snippet name and has a prefix, body and 
+	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
+	// same ids are connected.
+	// Example:
+	"Print to console": {
+		"prefix": "log",
+		"body": [
+			"console.log('$1');",
+			"$2"
+		],
+		"description": "Log output to console"
+	}
+*/
