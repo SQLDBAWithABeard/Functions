@@ -1,6 +1,6 @@
 {
 /*
-	These are PowerShell snippets whcih you can use in Visual Studio Code
+	These are PowerShell snippets which you can use in Visual Studio Code
 	To use them click File --> Preferences --> User Snippets and type PowerShell
 	or edit $env:\appdata\code\user\snippets\powershell.json
 	In general and in order I converted exisitng snippets like this
