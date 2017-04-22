@@ -71,6 +71,7 @@ param
         [ValidateNotNullOrEmpty()]
         [object]$JobStep)
     DynamicParam {
+            
             # Set the dynamic parameters' name
             $ParameterName = 'JobName'
             

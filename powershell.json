@@ -234,7 +234,68 @@
             "$$Role.Create()"
 		],
 		"description": "Simple SMO to create a Database Role"
+	},
+	"SQL firewall Rules": {
+		"prefix": "Firewall Rules SQL",
+		"body": [
+            	"#Enabling SQL Server Ports",
+				"New-NetFirewallRule -DisplayName “SQL Server” -Direction Inbound –Protocol TCP –LocalPort 1433 -Action allow",
+				"New-NetFirewallRule -DisplayName “SQL Admin Connection” -Direction Inbound –Protocol TCP –LocalPort 1434 -Action allow",
+				"New-NetFirewallRule -DisplayName “SQL Database Management” -Direction Inbound –Protocol UDP –LocalPort 1434 -Action allow",
+				"New-NetFirewallRule -DisplayName “SQL Service Broker” -Direction Inbound –Protocol TCP –LocalPort 4022 -Action allow",
+				"New-NetFirewallRule -DisplayName “SQL Debugger/RPC” -Direction Inbound –Protocol TCP –LocalPort 135 -Action allow",
+				"#Enabling SQL Analysis Ports",
+				"New-NetFirewallRule -DisplayName “SQL Analysis Services” -Direction Inbound –Protocol TCP –LocalPort 2383 -Action allow",
+				"New-NetFirewallRule -DisplayName “SQL Browser” -Direction Inbound –Protocol TCP –LocalPort 2382 -Action allow",
+				"#Enabling Misc. Applications",
+				"New-NetFirewallRule -DisplayName “HTTP” -Direction Inbound –Protocol TCP –LocalPort 80 -Action allow",
+				"New-NetFirewallRule -DisplayName “SSL” -Direction Inbound –Protocol TCP –LocalPort 443 -Action allow",
+				"New-NetFirewallRule -DisplayName “SQL Server Browse Button Service” -Direction Inbound –Protocol UDP –LocalPort 1433 -Action allow"
+		],
+		"description": "Set Firewall for SQL "
+	},
+	"Remote Management firewall Rules": {
+		"prefix": "Firewall Rules Remote - File and Printer",
+		"body": [
+            	"Set-NetFirewallRule -DisplayGroup 'File And Printer Sharing' -Enabled True"
+				],
+		"description": "Set Firewal for Remote Mangememnt WMI etc"
+	},
+		"Ping firewall Rules": {
+		"prefix": "Firewall Rules Ping",
+		"body": [
+            	"New-NetFirewallRule -Name Allow_Ping -Description 'Allow Ping' -Protocol ICMPv4 -Icmptype 8 -Enabled True -Profile Any -Action Allow"
+				],
+		"description": "Set Firewall for ping"
+	},
+		"Remote Management firewall Rules": {
+		"prefix": "Firewall Rules Remote - wmi",
+		"body": [
+            	"Get-NetFirewallRule -DisplayGroup 'Remote*' | Set-NetFirewallRule -Enabled True"
+				],
+		"description": "Set Firewall for Remote Management"
+	},
+		"Show All Excel Colours": {
+		"prefix": "Excel Colours",
+		"body": [
+            	"$xl = new-object -comobject excel.application",
+				"$xl.Visible = $true",
+				"$xl.DisplayAlerts = $False",
+				"$wb = $xl.Workbooks.Add()",
+				"$ws = $wb.Worksheets.Item(1)",
+				"$row = 1",
+				"$i = 1",
+				"For($i = 1; $i -lt 57; $i++){",
+				"$ws.Cells.Item($row, 1) = \"'$'ws.Cells.Item($row, 2).Font.ColorIndex = \" + $row",
+				"$ws.Cells.Item($row, 2).Font.ColorIndex = $row",
+				"$ws.Cells.Item($row, 2) = \"test \" + $row",
+				"$row++",
+				"}",
+				"[void]$ws.cells.entireColumn.Autofit()" 
+				],
+			"description": "Shows all the colour indexes for the Excel colours"
 	}
+
 }
 
 /*
