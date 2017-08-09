@@ -59,7 +59,7 @@ function Get-PwnedPassword {
 
     if ((!$Password) -and (!$Hash)) {
         $Password = Read-Host -Prompt "Enter Password" -AsSecureString
-        $Pass = ConvertFrom-SecureString $Password
+        $Pass =  (New-Object PSCredential "user",$Password).GetNetworkCredential().Password
         $URL = 'https://haveibeenpwned.com/api/v2/pwnedpassword/' + $Pass
     }
     elseif ($hash) {
@@ -91,7 +91,7 @@ function Get-PwnedPassword {
 }
 <#PSScriptInfo
 
-.VERSION 1.1
+.VERSION 1.2
 
 .GUID bc54fa58-2ebc-4a87-8dd7-ecdcae505288
 
