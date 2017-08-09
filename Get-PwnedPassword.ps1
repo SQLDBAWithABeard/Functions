@@ -9,23 +9,32 @@ Troy Hunt @troyhunt has created an API which allows you to query if a Password h
 This is a simple function enabling you to query it
 
 .PARAMETER Password
-The password or the SHA1 hash of the password to check
+The password to check as a secure string if not supoplied will be prompted
+
+.PARAMETER Hash
+A SHA1 hash of the password to be checked
 
 .EXAMPLE
+$Password = Read-Host -AsSecureString
 Get-PwnedPassword -Password Password
 
-Connects to the API at https://haveibeenpwned.com/ and checks if 'Password' has been found
+Connects to the API at https://haveibeenpwned.com/ and checks if a password has been found
 in a breach.
 
-Don't run this. It has!!
 
 .EXAMPLE
-Get-PwnedPassword -Password 8be3c943b1609fffbfc51aad666d0a04adf83c9d
+Get-PwnedPassword -Hash 8be3c943b1609fffbfc51aad666d0a04adf83c9d
 
 Connects to the API at https://haveibeenpwned.com/ and checks if the SHA1 hash of 'Password' has been found
 in a breach.
 
 Don't run this. It has!!
+
+.EXAMPLE
+Get-PwnedPassword
+
+Prompts for a Password and connects to the API at https://haveibeenpwned.com/ and checks if it has been found
+in a breach.
 
 .NOTES
     AUTHOR : Rob Sewell @sqldbawithbeard https://sqldbawithabeard.com 
@@ -42,10 +51,25 @@ https://www.troyhunt.com/introducing-306-million-freely-downloadable-pwned-passw
 function Get-PwnedPassword {
     [CmdletBinding()] 
     Param(
-        [Parameter(Mandatory)]
-        [string]$Password)
+        [Parameter()]
+        [SecureString]$Password ,
+        [Parameter()]
+        [String]$Hash
+    )
 
-    $URL = 'https://haveibeenpwned.com/api/v2/pwnedpassword/' + $Password
+    if ((!$Password) -and (!$Hash)) {
+        $Password = Read-Host -Prompt "Enter Password" -AsSecureString
+        $Pass = ConvertFrom-SecureString $Password
+        $URL = 'https://haveibeenpwned.com/api/v2/pwnedpassword/' + $Pass
+    }
+    elseif ($hash) {
+        $URL = 'https://haveibeenpwned.com/api/v2/pwnedpassword/' + $Hash
+    }
+    else {
+        $Pass = ConvertFrom-SecureString $Password
+        $URL = 'https://haveibeenpwned.com/api/v2/pwnedpassword/' + $Pass
+    }
+    
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     try {
         $Response = Invoke-WebRequest -Uri $URL -ErrorAction SilentlyContinue
