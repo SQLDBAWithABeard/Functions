@@ -91,7 +91,7 @@ function Get-PwnedPassword {
 }
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 1.1
 
 .GUID bc54fa58-2ebc-4a87-8dd7-ecdcae505288
 
