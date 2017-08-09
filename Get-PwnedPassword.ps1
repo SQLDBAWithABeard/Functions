@@ -9,7 +9,7 @@ Troy Hunt @troyhunt has created an API which allows you to query if a Password h
 This is a simple function enabling you to query it
 
 .PARAMETER Password
-The password to check as a secure string if not supoplied will be prompted
+The password to check as a secure string. If not supplied will be prompted
 
 .PARAMETER Hash
 A SHA1 hash of the password to be checked
