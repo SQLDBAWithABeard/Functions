@@ -162,6 +162,8 @@
    return  $DataTable
  }
 
+ <#
+
 $datatable = Get-SqlServerBuildList
 $batchsize = 5000
 $srv = New-Object Microsoft.SqlServer.Management.Smo.Server $SQLServer
@@ -179,3 +181,5 @@ $bulkcopy.batchsize = $batchsize
 $bulkcopy.WriteToServer($datatable)
 $datatable.Clear()
 $bulkcopy.Dispose()
+
+#>
