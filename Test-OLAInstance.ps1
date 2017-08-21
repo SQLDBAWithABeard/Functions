@@ -145,7 +145,7 @@ $tempFolder = 'c:\temp\Reports'
 $File = $tempFolder + '\Script_Pester_Report_' + $date
 $XML = $File + '.xml'
 $HTML = $file + '.html'
-Invoke-Pester -Script $Script -OutputFile $xml -OutputFormat NUnitXml
+Invoke-Pester -Script $Script -OutputFile $xml -OutputFormat NUnitXml -Show Fails , Summary 
 Push-Location $tempFolder
 #download and extract ReportUnit.exe
 $url = 'http://relevantcodes.com/Tools/ReportUnit/reportunit-1.5-beta1.zip'
@@ -162,6 +162,6 @@ ii $HTML
 }
 else
 {
-Invoke-Pester -Script $Script
+Invoke-Pester -Script $Script -PassThru
 }
 }
