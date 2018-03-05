@@ -127,6 +127,7 @@ try {
 
 } Catch
 {
-   Write-Warning " An Error Occured Run  `$error[0] | fl * -force to get the full details"
+   #Write-Warning " An Error Occured Run  `$error[0] | fl * -force to get the full details"
+   $_
 }
     }
