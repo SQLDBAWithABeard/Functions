@@ -3,7 +3,7 @@
 ## as a SQLCMD step
 
 ## powershell.exe 'path to file'
-
+<#
 Write-Output "Starting Copy of XXXX database from SourceServerName to DestServerName"
 
 try {
@@ -33,3 +33,4 @@ $CopyError = $error[0..5] | fl -force
     Write-Error $CopyError
 [System.Environment]::Exit(1)
 }
+#>
