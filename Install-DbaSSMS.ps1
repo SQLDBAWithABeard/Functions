@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Uses the Microsoft website to get the latest download link for SSMS full install or SSMS upgrade and 
 silently installs it. It WILL KILL SSMS is it is already running
@@ -88,11 +88,14 @@ function Install-DbaSSMS {
         }
         #endregion
         function Start-DbaFileDownload {
+            [CmdletBinding(SupportsShouldProcess = $true)]
             Param(
                 $url,
                 $OutputFile
             )
-            (New-Object System.Net.WebClient).DownloadFile($url, $outputFile)
+            if ($PSCmdlet.ShouldProcess("$ENV:COMPUTERNAME", "Downloading file from $url to $outputFile ")) {
+                (New-Object System.Net.WebClient).DownloadFile($url, $outputFile)
+            }
         }
 
         #region Get the download link
