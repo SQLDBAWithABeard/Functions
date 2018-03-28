@@ -1,10 +1,10 @@
-function Install-DbaSSMS {
+﻿function Install-DbaSSMS {
     [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Online')]
     Param(
         [Parameter(Mandatory = $false, ParameterSetName = 'Online')]
         [ValidateNotNullOrEmpty()]
         [string] $URL = "https://msdn.microsoft.com/en-us/library/mt238290.aspx",
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'Online')]
         [ValidateScript( {Test-Path $_})]
         [ValidateNotNullOrEmpty()]
         [string] $DownloadPath = "$ENV:USERPROFILE\Downloads",
@@ -16,56 +16,70 @@ function Install-DbaSSMS {
         [string]$FilePath
     )
 
-    #region SanityCheck
-    if ( -not (Test-Path $DownloadPath)) {
-        Write-Warning "I can't access $DownloadPath -  won't be able to continue. Please specify a directory this account has access to"
-        Return
-    }
-    #endregion
-    function Start-DbaFileDownload {
-        Param(
-            $url,
-            $OutputFile
-        )
-        (New-Object System.Net.WebClient).DownloadFile($url, $outputFile)
-    }
-
-    #region Get the download link
-    # Go to the Microsoft Site and grab the download link
-
-    try {
-        $pscmdlet.WriteVerbose("Getting the download link from $url")
-        $webpage = Invoke-WebRequest -Uri $url -UseBasicParsing 
-        ## Choose the link depending on if it is an ugrade or a full install
-        if ($Upgrade) {
-            $pscmdlet.WriteVerbose("Getting the download link for upgrade")
-            $Downloadlink = $webpage.Links.Where{$_.OuterHtml -match 'Download SQL Server Management'}[1].href
-            $InstallFile = "$DownloadPath\Autoinstall-SSMS-Setup-ENU-Upgrade.exe"
+    if ( -not $Offline) {
+        $pscmdlet.WriteVerbose("Installing from the web")
+        #region SanityCheck
+        if ( -not (Test-Path $DownloadPath)) {
+            Write-Warning "I can't access $DownloadPath -  won't be able to continue. Please specify a directory this account has access to"
+            Return
         }
-        else {
-            $pscmdlet.WriteVerbose("Getting the download link for full install")
-            $Downloadlink = $webpage.Links.Where{$_.OuterHtml -match 'Download SQL Server Management'}[0].href
-            $InstallFile = "$DownloadPath\Autoinstall-SSMS-Setup-ENU.exe"
+        #endregion
+        function Start-DbaFileDownload {
+            Param(
+                $url,
+                $OutputFile
+            )
+            (New-Object System.Net.WebClient).DownloadFile($url, $outputFile)
         }
-        $pscmdlet.WriteVerbose("Got the download link $Downloadlink")
-    }
-    Catch {
-        Write-Warning "Failed To Get Download link from $url"
-        Return
-    }
-    #endregion
 
-    #region Download the file
-    try {
-        $pscmdlet.WriteVerbose("Starting Downloading the file from $DownloadLink to $InstallFile")
-        Start-DbaFileDownload -Url $DownloadLink -OutputFile $InstallFile 
-        $pscmdlet.WriteVerbose("Downloaded the file to $InstallFile ")
+        #region Get the download link
+        # Go to the Microsoft Site and grab the download link
+
+        try {
+            $pscmdlet.WriteVerbose("Getting the download link from $url")
+            $webpage = Invoke-WebRequest -Uri $url -UseBasicParsing 
+            ## Choose the link depending on if it is an ugrade or a full install
+            if ($Upgrade) {
+                $pscmdlet.WriteVerbose("Getting the download link for upgrade")
+                $Downloadlink = $webpage.Links.Where{$_.OuterHtml -match 'Download SQL Server Management'}[1].href
+                $InstallFile = "$DownloadPath\Autoinstall-SSMS-Setup-ENU-Upgrade.exe"
+            }
+            else {
+                $pscmdlet.WriteVerbose("Getting the download link for full install")
+                $Downloadlink = $webpage.Links.Where{$_.OuterHtml -match 'Download SQL Server Management'}[0].href
+                $InstallFile = "$DownloadPath\Autoinstall-SSMS-Setup-ENU.exe"
+            }
+            $pscmdlet.WriteVerbose("Got the download link $Downloadlink")
+        }
+        Catch {
+            Write-Warning "Failed To Get Download link from $url"
+            Return
+        }
+        #endregion
+
+        #region Download the file
+        try {
+            $pscmdlet.WriteVerbose("Starting Downloading the file from $DownloadLink to $InstallFile")
+            Start-DbaFileDownload -Url $DownloadLink -OutputFile $InstallFile 
+            $pscmdlet.WriteVerbose("Downloaded the file to $InstallFile ")
+        }
+        catch {
+            Write-Warning "Failed To Get Download link from $url"
+            Return
+        }
+        #endregion
     }
-    catch {
-        Write-Warning "Failed To Get Download link from $url"
-        Return
+    else {
+        $pscmdlet.WriteVerbose("Installing from Off-Line file $FilePath")
+        #region SanityCheck
+        if ( -not (Test-Path $FilePath)) {
+            Write-Warning "I can't access $FilePath -  won't be able to continue. Please specify a directory this account has access to"
+            Return
+        }
+        #endregion
+        $pscmdlet.WriteVerbose("Using the Offline file $FilePath for installation")
+        $InstallFile = $FilePath
     }
-    #endregion
 
     #region Stop SSMS if it is running
 
