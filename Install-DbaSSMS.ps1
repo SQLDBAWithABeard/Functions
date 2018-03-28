@@ -1,4 +1,67 @@
-﻿function Install-DbaSSMS {
+<#
+.SYNOPSIS
+Uses the Microsoft website to get the latest download link for SSMS full install or SSMS upgrade and 
+silently installs it. It WILL KILL SSMS is it is already running
+
+.DESCRIPTION
+Uses the Microsoft website and gets the download link for SSMS full install or SSMS upgrade and 
+silently installs it. It WILL KILL SSMS is it is already running
+
+.PARAMETER URL
+Defaults to the correct Microsoft page. This the URL to check for a download link 
+
+.PARAMETER DownloadPath
+The directory to download the file to. Defaults to the User Profile Downloads folder. But can be defined to use a different directory if required
+
+.PARAMETER Upgrade
+Switch to choose the upgrade link instead of the full install (for online installs only)
+
+.PARAMETER Offline
+Switch to choose an offline installer method
+
+.PARAMETER FilePath
+Path to the file for the offline installation
+
+.EXAMPLE
+Install-DbaSSMS 
+
+Contacts the Microsoft website and installs the latest SSMS using the full installer
+It WILL KILL SSMS is it is already running
+
+.EXAMPLE
+Install-DbaSSMS -Upgrade
+
+Contacts the Microsoft website and upgrades SSMS
+It WILL KILL SSMS is it is already running
+
+.EXAMPLE
+Install-DbaSSMS -DownloadPath T:\WhereIStoreMySSMSDownload
+
+Contacts the Microsoft website downloads the latest full installer to the T:\WhereIStoreMySSMSDownload directory
+ and installs it.
+ It WILL KILL SSMS is it is already running
+
+.EXAMPLE
+Install-DbaSSMS -Offline -FilePath T:\WhereIStoreMySSMSDownload\SSMS-Setup-ENU.exe
+
+Uses the file T:\WhereIStoreMySSMSDownload\SSMS-Setup-ENU.exe to install SSMS. 
+It WILL KILL SSMS is it is already running
+
+.EXAMPLE
+Install-DbaSSMS -Offline -FilePath T:\WhereIStoreMySSMSDownload\SSMS-Setup-ENU-Upgrade.exe
+
+Uses the file T:\WhereIStoreMySSMSDownload\SSMS-Setup-ENU-Upgrade.exe to upgrade SSMS 
+(assuming the upgrade file is named SSMS-Setup-ENU-Upgrade.exe). 
+It WILL KILL SSMS is it is already running
+
+.NOTES
+
+It WILL KILL SSMS is it is already running
+
+Written by Rob Sewell @sqldbawithabeard
+Initial Help - RMS - 28/03/2018
+#>
+function Install-DbaSSMS {
     [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Online')]
     Param(
         [Parameter(Mandatory = $false, ParameterSetName = 'Online')]
