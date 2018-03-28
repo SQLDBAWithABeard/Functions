@@ -72,6 +72,24 @@ Describe "Install-DbaSSMS" {
         It "Upgrade Parameter should be of type Switch" {
             (Get-Command Install-DbaSSMS).Parameters['Upgrade'].ParameterType.Name | Should -Be 'SwitchParameter' -Because "It only needs to be a switch"
         }
+        It "Should have a parameter of OffLine" {
+            (Get-Command Install-DbaSSMS).Parameters['OffLine'].Count | Should -Be 1 -Because "We want to enable offline installation"
+        }
+        It "OffLine Parameter should not be mandatory" {
+            (Get-Command Install-DbaSSMS).Parameters['OffLine'].Attributes.Mandatory | Should -BeFalse -Because "The default should be online"
+        }
+        It "OffLine Parameter should be of type Switch" {
+            (Get-Command Install-DbaSSMS).Parameters['OffLine'].ParameterType.Name | Should -Be 'SwitchParameter' -Because "It only needs to be a switch"
+    }
+        It "Should have a parameter of FilePath" {
+            (Get-Command Install-DbaSSMS).Parameters['FilePath'].Count | Should -Be 1 -Because "We want to enable offline installation"
+        }
+        It "FilePath Parameter should not be mandatory" {
+            (Get-Command Install-DbaSSMS).Parameters['FilePath'].Attributes.Mandatory | Should -BeFalse -Because "The default should be online"
+        }
+        It "FilePath Parameter should be of type String" {
+            (Get-Command Install-DbaSSMS).Parameters['FilePath'].ParameterType.Name | Should -Be 'String' -Because "What else would a filepath be?"
+        }
     }
     Context "Execution" {
         It "Should Not Throw" {
