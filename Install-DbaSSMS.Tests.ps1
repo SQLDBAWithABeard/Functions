@@ -1,4 +1,4 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "$here\$sut"
 
@@ -80,7 +80,7 @@ Describe "Install-DbaSSMS" {
         }
         It "OffLine Parameter should be of type Switch" {
             (Get-Command Install-DbaSSMS).Parameters['OffLine'].ParameterType.Name | Should -Be 'SwitchParameter' -Because "It only needs to be a switch"
-    }
+        }
         It "Should have a parameter of FilePath" {
             (Get-Command Install-DbaSSMS).Parameters['FilePath'].Count | Should -Be 1 -Because "We want to enable offline installation"
         }
@@ -136,6 +136,18 @@ Describe "Install-DbaSSMS" {
             }
             Assert-MockCalled @assertMockParams
         }
+
+        It "Should not contact the web if offline switch is used" {
+            Install-DbaSSMS -Offline -FilePath 'DummyFile'
+            $assertMockParams = @{
+                'CommandName' = 'Start-DbaFileDownload'
+                'Times'       = 0
+                'Exactly'     = $true
+                'Scope'       = 'It'
+            }
+            Assert-MockCalled @assertMockParams
+        }
+
         It "Should Write a warning if it errors installing" {
             Mock Start-Process {Throw} 
             Install-DbaSSMS
@@ -172,6 +184,7 @@ Describe "Install-DbaSSMS" {
             }
             Assert-MockCalled @assertMockParams
         }
+
     }
     
     Context "Output" {
