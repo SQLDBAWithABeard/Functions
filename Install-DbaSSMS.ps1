@@ -94,7 +94,14 @@ function Install-DbaSSMS {
                 $OutputFile
             )
             if ($PSCmdlet.ShouldProcess("$ENV:COMPUTERNAME", "Downloading file from $url to $outputFile ")) {
-                (New-Object System.Net.WebClient).DownloadFile($url, $outputFile)
+                try {
+                    (New-Object System.Net.WebClient).DownloadFile($url, $outputFile)
+                }
+                Catch {
+                    $pscmdlet.WriteVerbose("Probably using a proxy for internet access, trying default proxy settings")
+                    $wc = (New-Object System.Net.WebClient).Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                    $wc.DownloadFile($url, $outputFile)
+                }
             }
         }
 
