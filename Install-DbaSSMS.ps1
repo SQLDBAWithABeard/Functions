@@ -177,7 +177,7 @@ function Install-DbaSSMS {
 
     if ($PSCmdlet.ShouldProcess("$ENV:COMPUTERNAME", "Installing SSMS on ")) {
         try {
-            Start-Process -FilePath $InstallFile -ArgumentList "/install /quiet /norestart" -Wait
+            Start-Process -FilePath $InstallFile -ArgumentList "/install /quiet /norestart" -Wait -Verb RunAs
             $pscmdlet.WriteVerbose("SSMS installed or upgraded")
         }
         catch {
