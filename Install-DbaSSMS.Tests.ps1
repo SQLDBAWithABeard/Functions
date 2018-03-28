@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "$here\$sut"
 
@@ -67,7 +67,7 @@ Describe "Install-DbaSSMS" {
             (Get-Command Install-DbaSSMS).Parameters['Upgrade'].Count | Should -Be 1 -Because "We want to enable upgrades"
         }
         It "Upgrade Parameter should not be mandatory" {
-            (Get-Command Install-DbaSSMS).Parameters['Upgradeh'].Attributes.Mandatory | Should -BeFalse -Because "The default should be full install"
+            (Get-Command Install-DbaSSMS).Parameters['Upgrade'].Attributes.Mandatory | Should -BeFalse -Because "The default should be full install"
         }
         It "Upgrade Parameter should be of type Switch" {
             (Get-Command Install-DbaSSMS).Parameters['Upgrade'].ParameterType.Name | Should -Be 'SwitchParameter' -Because "It only needs to be a switch"
