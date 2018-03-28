@@ -1,15 +1,19 @@
-﻿function Install-DbaSSMS {
-    [CmdletBinding(SupportsShouldProcess = $true)]
+function Install-DbaSSMS {
+    [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Online')]
     Param(
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'Online')]
         [ValidateNotNullOrEmpty()]
         [string] $URL = "https://msdn.microsoft.com/en-us/library/mt238290.aspx",
         [Parameter(Mandatory = $false)]
         [ValidateScript( {Test-Path $_})]
         [ValidateNotNullOrEmpty()]
         [string] $DownloadPath = "$ENV:USERPROFILE\Downloads",
-        [Parameter(Mandatory = $false)]
-        [switch]$Upgrade
+        [Parameter(Mandatory = $false, ParameterSetName = 'Online')]
+        [switch]$Upgrade,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Offline')]
+        [switch]$Offline,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Offline')]
+        [string]$FilePath
     )
 
     #region SanityCheck
