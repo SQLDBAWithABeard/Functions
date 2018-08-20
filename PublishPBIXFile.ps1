@@ -1,3 +1,47 @@
+
+<#PSScriptInfo
+
+.VERSION 1.0.0.0
+
+.GUID 0b89f8fb-6de5-4f1b-8a0d-6172a89d4743
+
+.AUTHOR Rob Sewell @sqldbawithbeard
+
+.COMPANYNAME Sewells Consulting
+
+.COPYRIGHT Rob Sewell @sqldbawithbeard
+
+.TAGS Power Bi SSRS SQL Server Reporting Services PBIX deployment
+
+.LICENSEURI https://github.com/SQLDBAWithABeard/Functions/blob/master/LICENSE
+
+.PROJECTURI https://github.com/SQLDBAWithABeard/Functions
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES 
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+
+#>
+
+#Requires -Module ReportingServicesTools
+
+<# 
+
+.DESCRIPTION 
+ Uploads PBIX files to a PowerBi report server and sets the data source 
+
+#> 
+
+Param()
+
+
 <#
 .SYNOPSIS
 Publishes a Power Bi File to a PowerBi Report Server. It will overwrite existing
