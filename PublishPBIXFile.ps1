@@ -1,7 +1,7 @@
 
 <#PSScriptInfo
 
-.VERSION 1.0.0.0
+.VERSION 1.0.0.1
 
 .GUID 0b89f8fb-6de5-4f1b-8a0d-6172a89d4743
 
@@ -114,6 +114,7 @@ $ConnectionString = "Server001;dbachecks"
 .NOTES
 Rob Sewell 20/08/2018
 #>
+
 function Publish-PBIXFile {
     [CmdletBinding(DefaultParameterSetName = 'ByUserName', SupportsShouldProcess)]
     Param(
@@ -153,7 +154,7 @@ function Publish-PBIXFile {
 
     # create folder (optional)
     try {
-        if ($PSCmdlet.ShouldProcess("$ReportServerURI","Creating a folder called $FolderName at $FolderLocation")){
+        if ($PSCmdlet.ShouldProcess("$ReportServerURI", "Creating a folder called $FolderName at $FolderLocation")) {
             $Null = New-RsRestFolder -WebSession $session -RsFolder $FolderLocation  -FolderName $FolderName -ErrorAction Stop
         }
     }
@@ -168,9 +169,9 @@ function Publish-PBIXFile {
     }
 
     try {
-        if ($PSCmdlet.ShouldProcess("$ReportServerURI","Uploading the pbix from $PBIXFile to the report server ")){
-                # upload copy of PBIX to new folder
-                Write-RsRestCatalogItem -WebSession $session -Path $PBIXFile -RsFolder $folderPath -Description $Description -Overwrite
+        if ($PSCmdlet.ShouldProcess("$ReportServerURI", "Uploading the pbix from $PBIXFile to the report server ")) {
+            # upload copy of PBIX to new folder
+            Write-RsRestCatalogItem -WebSession $session -Path $PBIXFile -RsFolder $folderPath -Description $Description -Overwrite
         }
     }
     catch {
@@ -181,7 +182,7 @@ function Publish-PBIXFile {
     try {
         Write-Verbose "Getting the datasources from the pbix file for updating"
         # get data source object
-        $dataSource = Get-RsRestItemDataSource -WebSession $session -RsItem "$FolderPath/$PBIXName"
+        $datasources = Get-RsRestItemDataSource -WebSession $session -RsItem "$FolderPath/$PBIXName"
         Write-Verbose "Got the datasources for updating"
     }
     catch {
@@ -192,25 +193,30 @@ function Publish-PBIXFile {
 
     try {
         Write-Verbose "Updating Datasource"
-        # change connection string (to point at new source)
-        $dataSource.ConnectionString = $ConnectionString
 
-        if ($Credential -or $UserName) {
-            if ($Credential) {
-                $UserName = $Credential.UserName
-                $Password = $Credential.GetNetworkCredential().Password
+       
+        foreach ($dataSource in $datasources) {
+            if ($ConnectionString) {
+                # change connection string (to point at new source)
+                $dataSource.ConnectionString = $ConnectionString
             }
-            else {
-                $UserName = $ConnectionUserName
-                $Password = $Secret
+            if ($Credential -or $UserName) {
+                if ($Credential) {
+                    $UserName = $Credential.UserName
+                    $Password = $Credential.GetNetworkCredential().Password
+                }
+                else {
+                    $UserName = $ConnectionUserName
+                    $Password = $Secret
+                }
+                $dataSource.CredentialRetrieval = 'Store'
+                $dataSource.DataModelDataSource.Username = $UserName 
+                $dataSource.DataModelDataSource.Secret = $Password 
             }
-            $dataSource.CredentialRetrieval = 'Store'
-            $dataSource.DataModelDataSource.Username = $UserName 
-            $dataSource.DataModelDataSource.Secret = $Password 
-        }
-        if ($PSCmdlet.ShouldProcess("$ReportServerURI","Updating the data source for the report $PBIXName")){
+            if ($PSCmdlet.ShouldProcess("$ReportServerURI", "Updating the data source for the report $PBIXName")) {
                 # update data source object on server
                 Set-RsRestItemDataSource -WebSession $session -RsItem "$folderPath/$PBIXName" -RsItemType PowerBIReport -DataSources $datasource
+            }
         }
     }
     catch {
