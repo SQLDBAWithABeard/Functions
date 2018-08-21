@@ -1,7 +1,7 @@
 
 <#PSScriptInfo
 
-.VERSION 1.0.0.1
+.VERSION 1.0.0.2
 
 .GUID 0b89f8fb-6de5-4f1b-8a0d-6172a89d4743
 
@@ -41,16 +41,14 @@
 
 Param()
 
-
 <#
 .SYNOPSIS
 Publishes a Power Bi File to a PowerBi Report Server. It will overwrite existing
 files.
 
 .DESCRIPTION
-Publishes a Power Bi File to a Power Bi report Server and sets the connection
-string for the data source and the credential. Only works with one data source 
-at present.It will overwrite existing files
+Publishes a Power Bi File to a Power Bi report Server and sets the credential for
+the datasources
 
 .PARAMETER FolderName
 The Name of the folder the report is to be placed. Will be created if it doesnt 
@@ -69,8 +67,8 @@ The full path to the pbix file
 .PARAMETER Description
 The Description of the report
 
-.PARAMETER ConnectionString
-The connection string for the data source   
+.PARAMETER AuthenticationType
+The type of Authentication for the user for the datasource - SQL or Windows
 
 .PARAMETER ConnectionUserName
 The User name for the credential for the datasource if required - Use a 
@@ -90,15 +88,14 @@ $ReportServerURI = 'http://localhost/Reports'
 $FolderLocation = '/'
 $PBIXFile = 'C:\Temp\test.pbix'
 $Description = "Descriptions"
-$ConnectionString = "Server001;dbachecks"
 
     $publishPBIXFileSplat = @{
         ReportServerURI = $ReportServerURI
         FolderLocation = $FolderLocation
         Description = $Description
         PBIXFile = $PBIXFile
-        ConnectionString = $ConnectionString
         FolderName = $FolderName
+        AuthenticationType = 'Windows'
       ConnectionUserName = $UserName1
       Secret = $Password1
       
@@ -108,13 +105,38 @@ $ConnectionString = "Server001;dbachecks"
     Deploys a report from the PBIX file C:\Temp\test.pbix  to the report server 
     on the localhost into a  folder called TestFolder located at the root of the
     server (which it will create if it doesnt exist) and sets the connection 
-    string to "Server001;dbachecks" with a user name and password stored in the 
-    variables
+    string to use a Windows user name and password stored in the variables
+
+    
+.EXAMPLE
+
+$FolderName = 'TestFolder'
+$ReportServerURI = 'http://localhost/Reports'
+$FolderLocation = '/'
+$PBIXFile = 'C:\Temp\test.pbix'
+$Description = "Descriptions"
+
+    $publishPBIXFileSplat = @{
+        ReportServerURI = $ReportServerURI
+        FolderLocation = $FolderLocation
+        Description = $Description
+        PBIXFile = $PBIXFile
+        FolderName = $FolderName
+        AuthenticationType = 'SQL'
+      ConnectionUserName = $UserName1
+      Secret = $Password1
+      
+    }
+    Publish-PBIXFile @publishPBIXFileSplat
+
+    Deploys a report from the PBIX file C:\Temp\test.pbix  to the report server 
+    on the localhost into a  folder called TestFolder located at the root of the
+    server (which it will create if it doesnt exist) and sets the connection 
+    string to use a SQL user name and password stored in the variables
 
 .NOTES
 Rob Sewell 20/08/2018
 #>
-
 function Publish-PBIXFile {
     [CmdletBinding(DefaultParameterSetName = 'ByUserName', SupportsShouldProcess)]
     Param(
@@ -129,7 +151,8 @@ function Publish-PBIXFile {
         [Parameter()]
         [string]$Description = "Description of Your report Should go here",
         [Parameter()]
-        [string]$ConnectionString,
+        [ValidateSet('Windows','SQL')]
+        [string]$AuthenticationType,
         [Parameter(ParameterSetName = 'ByUserName')]
         [string]$ConnectionUserName, 
         [Parameter(ParameterSetName = 'ByUserName')]
@@ -196,9 +219,11 @@ function Publish-PBIXFile {
 
        
         foreach ($dataSource in $datasources) {
-            if ($ConnectionString) {
-                # change connection string (to point at new source)
-                $dataSource.ConnectionString = $ConnectionString
+            if ($AuthenticationType -eq 'SQL') {
+                $dataSource.DataModelDataSource.AuthType = 'UsernamePassword'
+            }
+            else{
+                $dataSource.DataModelDataSource.AuthType = 'Windows'
             }
             if ($Credential -or $UserName) {
                 if ($Credential) {
