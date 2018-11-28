@@ -2,7 +2,7 @@
 .SYNOPSIS
 Downloads the Failover Detection Utility from the Tiger Team GitHub repo
  https://github.com/Microsoft/tigertoolbox/tree/master/Always-On/FailoverDetection, 
- creates the configuration json and gathers all the required data
+ creates the configuration json and gathers all the required data and runs the executable
 
 .DESCRIPTION
 Downloads the Failover Detection Utility from the tiger teams GitHub Repo,
