@@ -142,6 +142,7 @@ https://blogs.msdn.microsoft.com/sql_server_team/failover-detection-utility-avai
 Created by Rob Sewell
 @SQLDbaWithBeard
 sqldbawithabeard.com
+Blog post - https://sqldbawithabeard.com/2018/11/28/gathering-all-the-logs-and-running-the-availability-group-failover-detection-utility-with-powershell/
 #>
 function Invoke-SqlFailOverDetection {
     [cmdletbinding(SupportsShouldProcess)]
