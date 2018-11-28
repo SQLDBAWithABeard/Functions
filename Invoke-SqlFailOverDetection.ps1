@@ -185,10 +185,10 @@ Show = $Show"
         $DataFolder = $DataFolder + '\'
     }
     $msg = "Creating folders as needed"
-    Write-Verbose $msg
+    Write-Output $msg
     if (-not (Test-Path $DownloadFolder)) {
         try {
-            if ($PSCmdlet.ShouldProcess("$DownloadeFolder" , "Creating Directory")) {
+            if ($PSCmdlet.ShouldProcess("$DownloadFolder" , "Creating Directory")) {
                 $null = New-Item $DownloadFolder -ItemType Directory
             } 
         }
@@ -212,7 +212,6 @@ Show = $Show"
         try {
             if ($PSCmdlet.ShouldProcess("$DataFolder" , "Creating Directory")) {
                 $null = New-Item $DataFolder -ItemType Directory
-                Return
             } 
         }
         catch {
@@ -222,7 +221,7 @@ Show = $Show"
     #endregion
 
     #region Avoid TLS errors
-    Write-Verbose "Avoiding TLS Errors"
+    Write-Output "Avoiding TLS Errors"
     $currentVersionTls = [Net.ServicePointManager]::SecurityProtocol
     $currentSupportableTls = [Math]::Max($currentVersionTls.value__, [Net.SecurityProtocolType]::Tls.value__)
     $availableTls = [enum]::GetValues('Net.SecurityProtocolType') | Where-Object {
@@ -236,7 +235,7 @@ Show = $Show"
     #region Download the files
     if ( -not $AlreadyDownloaded -and -not $Analyze) {
         $msg = "Downloading and extracting required files"
-        Write-Verbose $msg
+        Write-Output $msg
         $DownloadFile = 'https://github.com/Microsoft/tigertoolbox/raw/master/Always-On/FailoverDetection/FailoverDetector.zip'
         $FileName = $DownloadFile.Split('/')[-1]
         $FilePath = $DownloadFolder + $FileName
@@ -248,7 +247,7 @@ Show = $Show"
         }
         catch {
             try {
-                Write-Verbose -Message "Probably using a proxy for internet access, trying default proxy settings"
+                Write-Output -Message "Probably using a proxy for internet access, trying default proxy settings"
                 if ($PSCmdlet.ShouldProcess("$FilePath" , "Downloading $DownloadFile with default proxy settings")) {
                     $wc = (New-Object System.Net.WebClient)
                     $wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
@@ -262,7 +261,7 @@ Show = $Show"
         }
 
         $msg = "Extracting $FileName"
-        Write-Verbose $msg
+        Write-Output $msg
 
         if ($PSCmdlet.ShouldProcess("$FileName" , "Extracting zip file ")) {
             if (Test-Path $FilePath) {
@@ -270,14 +269,13 @@ Show = $Show"
                     if (-not (Test-Path "$DownloadFolder\Extract")) {
                         if ($PSCmdlet.ShouldProcess("$DataFolder" , "Creating Directory")) {
                             $null = New-Item "$DownloadFolder\Extract" -ItemType Directory
-                            Return
                         } 
                     }
                     Expand-Archive -Path $FilePath -DestinationPath "$DownloadFolder\Extract" -Force
                 }
                 catch {
                     Write-Warning "Hmm something has gone wrong with the extraction"
-                    Write-Verbose "Hmm something has gone wrong with the extraction"
+                    Write-Output "Hmm something has gone wrong with the extraction"
                     Return
                 }
             }
@@ -291,7 +289,7 @@ Show = $Show"
 
     #region get all of the data
     $msg = "Getting the info about the Availability Group"
-    Write-Verbose $msg
+    Write-Output $msg
     try {
         $Ag = Get-DbaAvailabilityGroup -SqlInstance $SQLInstance -AvailabilityGroup $AvailabilityGroup
     }
@@ -302,8 +300,8 @@ Show = $Show"
     $replicastring = ForEach ($replica in $Ag.AvailabilityReplicas.Name) {
         '"' + $replica + '",'
     }
-    $msg = "Getting the information from the replicas and putting it in the DataFolder $DataFolder"
-    Write-Verbose $msg
+    $msg = "Getting the information from the Availability Group $($Ag.Name) replicas and putting it in the DataFolder $DataFolder"
+    Write-Output $msg
     foreach ($replica in $Ag.AvailabilityReplicas.Name) {
         $InstanceFolder = $DataFolder + $replica
         if (-not (Test-Path $InstanceFolder)) {
@@ -331,19 +329,29 @@ Show = $Show"
             $UNCErrorLogPath = '\\' + $replica + '\' + $Errorlogpath.Replace(':', '$')
             try {
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the Error Log to $InstanceFolder from ")) {
+                    $msg = "Copying the Error Log to $InstanceFolder from $replica"
+                    Write-Output $msg
                     Get-ChildItem $UNCErrorLogPath -Filter '*ERRORLOG*' | Copy-Item -Destination $InstanceFolder -Force
                 }
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the system health Extended Events logs to $InstanceFolder from ")) {
+                    $msg = "Copying the system health Extended Events logs to $InstanceFolder from $replica"
+                    Write-Output $msg
                     Get-ChildItem $UNCErrorLogPath -Filter 'system_health_*' | Copy-Item -Destination $InstanceFolder -Force
                 }
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the Always On health Extended Events logs to $InstanceFolder from ")) {
+                    $msg = "Copying the Always On health Extended Events logs to $InstanceFolder from $replica"
+                    Write-Output $msg
                     Get-ChildItem $UNCErrorLogPath -Filter 'AlwaysOn_health_*' | Copy-Item -Destination $InstanceFolder -Force
                 }
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the cluster log to $InstanceFolder from ")) {
+                    $msg = "Copying the cluster log to $InstanceFolder from $replica"
                     $null = Get-ClusterLog -Node $replica -Destination $Errorlogpath
+                    Write-Output $msg
                     Get-ChildItem $UNCErrorLogPath -Filter '*_cluster.log' | Copy-Item -Destination $InstanceFolder -Force
                 }
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the system event log to $InstanceFolder from ")) {
+                    $msg = "Copying the system event log to $InstanceFolder from $replica"
+                    Write-Output $msg
                     $SystemLogFilePath = $UNCErrorLogPath + '\' + $replica + '_system.csv'
                     $Date = (Get-Date).AddDays(-2)
                     Get-Eventlog -ComputerName $replica -LogName System -After $Date | Export-CSV -Path  $SystemLogFilePath
@@ -359,8 +367,8 @@ Show = $Show"
     #endregion
 
     #region copy all to the installation folder
-    $msg = "Copying the required fiels to the Installation folder $InstallationFolder"
-    Write-Verbose $msg
+    $msg = "Copying the required files to the Installation folder $InstallationFolder"
+    Write-Output $msg
     try {
         if ($PSCmdlet.ShouldProcess("$InstallationFolder" , "Copying the files form the Download folder $DownloadFolder to ")) {
             Get-ChildItem $DownloadFolder\Extract\* -Recurse | Copy-Item -Destination $InstallationFolder -Force
