@@ -304,6 +304,7 @@ Show = $Show"
     $msg = "Getting the information from the Availability Group $($Ag.Name) replicas and putting it in the DataFolder $DataFolder"
     Write-Output $msg
     foreach ($replica in $Ag.AvailabilityReplicas.Name) {
+        $replicaHostName = $replica.Split('\')[0]
         $InstanceFolder = $DataFolder + $replica
         if (-not (Test-Path $InstanceFolder)) {
             try {
@@ -327,10 +328,10 @@ Show = $Show"
                 Write-Warning "Failed to get the error log path for the replica $replica - Going to be difficult to gather all the data for $replica"
             }
 
-            $UNCErrorLogPath = '\\' + $replica + '\' + $Errorlogpath.Replace(':', '$')
+            $UNCErrorLogPath = '\\' + $replicaHostName + '\' + $Errorlogpath.Replace(':', '$')
             try {
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the Error Log to $InstanceFolder from ")) {
-                    $msg = "Copying the Error Log to $InstanceFolder from $replica"
+                    $msg = "Copying the Error Log to $InstanceFolder from $replicaHostName"
                     Write-Output $msg
                     Get-ChildItem $UNCErrorLogPath -Filter '*ERRORLOG*' | Copy-Item -Destination $InstanceFolder -Force
                 }
@@ -355,7 +356,7 @@ Show = $Show"
                     Write-Output $msg
                     $SystemLogFilePath = $UNCErrorLogPath + '\' + $replica + '_system.csv'
                     $Date = (Get-Date).AddDays(-2)
-                    Get-Eventlog -ComputerName $replica -LogName System -After $Date | Export-CSV -Path  $SystemLogFilePath
+                    Get-Eventlog -ComputerName $replicaHostName -LogName System -After $Date | Export-CSV -Path  $SystemLogFilePath
                     Get-ChildItem $UNCErrorLogPath -Filter '*_system.csv' | Copy-Item -Destination $InstanceFolder -Force
                 }
             }
