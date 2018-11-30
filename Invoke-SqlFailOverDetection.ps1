@@ -299,13 +299,13 @@ Show = $Show"
     }
 
     $replicastring = ForEach ($replica in $Ag.AvailabilityReplicas.Name) {
-        '"' + $replica.Split('\')[0].Replace('\','\\') + '",'
+        '"' + $replica.Split('\')[0].Replace('\', '\\') + '",'
     }
     $msg = "Getting the information from the Availability Group $($Ag.Name) replicas and putting it in the DataFolder $DataFolder"
     Write-Output $msg
     foreach ($replica in $Ag.AvailabilityReplicas.Name) {
         $replicaHostName = $replica.Split('\')[0]
-        $InstanceFolder = $DataFolder + $replica
+        $InstanceFolder = $DataFolder + $replica.Split('\')[0]
         if (-not (Test-Path $InstanceFolder)) {
             try {
                 if ($PSCmdlet.ShouldProcess("$InstanceFolder" , "Creating Directory for Data for replica $Replica ")) {
