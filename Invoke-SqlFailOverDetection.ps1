@@ -391,7 +391,7 @@ Show = $Show"
                 }
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the cluster log to $InstanceFolder from ")) {
                     $msg = "Copying the cluster log to $InstanceFolder from $replica"
-                    $null = Get-ClusterLog -Node $replicaHostName -Destination $Errorlogpath
+                    $null = Get-ClusterLog -Node $replicaHostName -Destination $UNCErrorlogpath
                     Write-Output $msg
                     Get-ChildItem $UNCErrorLogPath -Filter '*_cluster.log' | Copy-Item -Destination $InstanceFolder -Force
                 }
