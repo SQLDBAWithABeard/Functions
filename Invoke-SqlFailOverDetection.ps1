@@ -19,6 +19,9 @@ The folder to hold the downloaded files or hte locatio if already downloaded
 .PARAMETER DataFolder
 The folder to copy all of the required data from the replicas for the utility
 
+.PARAMETER ArchiveFolder
+The folder for storing the gathered logs from earlier runs - Defaults to DataFolder\Archive if not specified
+
 .PARAMETER SQLInstance
 One SQL Instance that is a replica in the required Availability Group, the script will find all of the rest of the replicas
 
@@ -153,6 +156,7 @@ function Invoke-SqlFailOverDetection {
         [string] $DownloadFolder,
         [Parameter(Mandatory = $true)]
         [string] $DataFolder,
+        [string] $ArchiveFolder,
         [Parameter(Mandatory = $true)]
         [string] $SQLInstance,
         [string] $AvailabilityGroup,
@@ -184,6 +188,9 @@ Show = $Show"
     }
     if (-not $DataFolder.EndsWith('\')) {
         $DataFolder = $DataFolder + '\'
+    }
+    if (-not $ArchiveFolder.EndsWith('\')) {
+        $ArchiveFolder = $ArchiveFolder + '\'
     }
     $msg = "Creating folders as needed"
     Write-Output $msg
@@ -317,8 +324,45 @@ Show = $Show"
                 Return
             }
         }
+        else {
+            #because some people clear out there files manually :-)
+            if ((Get-ChildItem $InstanceFolder).Length -ne 0) {
+                ## if there are results in here already we dont want to lose them so we shall move them to a new folder
+                $msg = "There is data in the data folder so we will move it"
+                Write-Verbose $msg
+                $clusterlog = Get-ChildItem "$InstanceFolder\*_cluster.log"
+                if ($clusterlog) {
+                    $FileDate = Get-Date $clusterlog.LastWriteTime -Format ddMMyyyy-HHmmss
+                }
+                else {
+                    #if process fails and there is no cluster file to get a date it errors
+                    $FileDate = (Get-Date -Format ddMMyyyy-HHmmss) + "_WhenMoved_CouldntGetAccurateDate"
+                }
+                if (-not $ArchiveFolder) {
+                    $ArchiveFolder = "$DataFolder\Archive\"
+                }
+                
+                $FolderName = $ArchiveFolder + $FileDate + '_' + $replicaHostName 
+                if ($PSCmdlet.ShouldProcess("$FolderName" , "Creating an archive folder ")) {
+                    $null = New-Item $FolderName -ItemType Directory
+                }
+                if ($PSCmdlet.ShouldProcess("$InstanceFolder" , "Archiving files to $FolderName ")) {
+                    $msg = "Archiving files from $InstanceFolder to $FolderName "
+                    Write-Output $msg
+                    Get-ChildItem "$InstanceFolder\*" -Recurse | Move-Item -Destination $FolderName
+                }   
+            }
+        }
 
         if ( -not $Analyze) {
+
+            # Need to remvoe the files from here if we run this multiple times, else things get confusing
+            if ((Get-ChildItem $InstallationFolder\Data\*).Length -gt 0) {
+                if ($PSCmdlet.ShouldProcess("$InstallationFolder\Data" , "Removing all files from ")) {
+                    Remove-Item $InstallationFolder\Data\* -Recurse -Force
+                }
+            }
+
             $msg = "Getting the error log location for the replica $replica"
             Write-Verbose $msg
             try {
