@@ -58,9 +58,32 @@ puts them in 'C:\temp\failoverdetection\new\Data'. Copies the required files to 
 and runs the utility
 
 .EXAMPLE
-$InstallationFolder = 'C:\temp\failoverdetection\new\Install'
-$DownloadFolder = 'C:\temp\failoverdetection\new\Download'
-$DataFolder = 'C:\temp\failoverdetection\new\Data'
+$InstallationFolder = 'C:\temp\failoverdetection\Install'
+$DownloadFolder = 'C:\temp\failoverdetection\Download'
+$DataFolder = 'C:\temp\failoverdetection\Data'
+$SQLInstance = 'SQL0'
+
+$invokeSqlFailOverDetectionSplat = @{
+    DownloadFolder = $DownloadFolder
+    SQLInstance = $SQLInstance
+    DataFolder = $DataFolder
+    InstallationFolder = $InstallationFolder
+    AlreadyDownloaded = $true
+}
+Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat 
+
+Does not download any files
+Connects to SQL0 and finds the all of the replicas in the Availability Group and gets the
+Error Logs, Extended Event files, System Event log and Cluster Log for each of the replicas amd
+puts them in 'C:\temp\failoverdetection\Data'. 
+Copies the required files from 'C:\temp\failoverdetection\Download' to 'C:\temp\failoverdetection\Install'
+and runs the utility
+
+.EXAMPLE
+$InstallationFolder = 'C:\temp\failoverdetection\Install'
+$DownloadFolder = 'C:\temp\failoverdetection\Download'
+$DataFolder = 'C:\temp\failoverdetection\Data'
+$ArchiveFolder = 'C:\temp\failoverdetection\Archive'
 $SQLInstance = 'SQL0'
 
 $invokeSqlFailOverDetectionSplat = @{
