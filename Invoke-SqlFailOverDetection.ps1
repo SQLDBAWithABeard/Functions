@@ -299,7 +299,7 @@ Show = $Show"
     }
 
     $replicastring = ForEach ($replica in $Ag.AvailabilityReplicas.Name) {
-        '"' + $replica + '",'
+        '"' + $replica.Split('\')[0].Replace('\','\\') + '",'
     }
     $msg = "Getting the information from the Availability Group $($Ag.Name) replicas and putting it in the DataFolder $DataFolder"
     Write-Output $msg
@@ -347,14 +347,14 @@ Show = $Show"
                 }
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the cluster log to $InstanceFolder from ")) {
                     $msg = "Copying the cluster log to $InstanceFolder from $replica"
-                    $null = Get-ClusterLog -Node $replica -Destination $Errorlogpath
+                    $null = Get-ClusterLog -Node $replicaHostName -Destination $Errorlogpath
                     Write-Output $msg
                     Get-ChildItem $UNCErrorLogPath -Filter '*_cluster.log' | Copy-Item -Destination $InstanceFolder -Force
                 }
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the system event log to $InstanceFolder from ")) {
                     $msg = "Copying the system event log to $InstanceFolder from $replica"
                     Write-Output $msg
-                    $SystemLogFilePath = $UNCErrorLogPath + '\' + $replica + '_system.csv'
+                    $SystemLogFilePath = $UNCErrorLogPath + '\' + $replicaHostName + '_system.csv'
                     $Date = (Get-Date).AddDays(-2)
                     Get-Eventlog -ComputerName $replicaHostName -LogName System -After $Date | Export-CSV -Path  $SystemLogFilePath
                     Get-ChildItem $UNCErrorLogPath -Filter '*_system.csv' | Copy-Item -Destination $InstanceFolder -Force
