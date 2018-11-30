@@ -1,6 +1,6 @@
 ## This needs to be run as a file available to the agent service
 
-## as a SQLCMD step
+## as a CMD step
 
 ## powershell.exe 'path to file'
 <#
