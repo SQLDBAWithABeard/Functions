@@ -38,9 +38,9 @@ This parameter will just run the tool without downloading or gathering any data
 This parameter to output the results to the screen as well as to store them in the json file
 
 .EXAMPLE
-$InstallationFolder = 'C:\temp\failoverdetection\new\Install'
-$DownloadFolder = 'C:\temp\failoverdetection\new\Download'
-$DataFolder = 'C:\temp\failoverdetection\new\Data'
+$InstallationFolder = 'C:\temp\failoverdetection\Install'
+$DownloadFolder = 'C:\temp\failoverdetection\Download'
+$DataFolder = 'C:\temp\failoverdetection\Data'
 $SQLInstance = 'SQL0'
 
 $invokeSqlFailOverDetectionSplat = @{
@@ -51,10 +51,10 @@ $invokeSqlFailOverDetectionSplat = @{
 }
 Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
 
-Downloads the required files from the GitHub repo to 'C:\temp\failoverdetection\new\Download'
+Downloads the required files from the GitHub repo to 'C:\temp\failoverdetection\Download'
 Connects to SQL0 and finds the all of the replicas in the Availability Group and gets the
 Error Logs, Extended Event files, System Event log and Cluster Log for each of the replicas amd
-puts them in 'C:\temp\failoverdetection\new\Data'. Copies the required files to 'C:\temp\failoverdetection\new\Install'
+puts them in 'C:\temp\failoverdetection\Data'. Copies the required files to 'C:\temp\failoverdetection\Install'
 and runs the utility
 
 .EXAMPLE
@@ -91,6 +91,7 @@ $invokeSqlFailOverDetectionSplat = @{
     SQLInstance = $SQLInstance
     DataFolder = $DataFolder
     InstallationFolder = $InstallationFolder
+    ArchiveFolder      = $ArchiveFolder
     AlreadyDownloaded = $true
 }
 Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat 
@@ -98,14 +99,15 @@ Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
 Does not download any files
 Connects to SQL0 and finds the all of the replicas in the Availability Group and gets the
 Error Logs, Extended Event files, System Event log and Cluster Log for each of the replicas amd
-puts them in 'C:\temp\failoverdetection\new\Data'. 
-Copies the required files from 'C:\temp\failoverdetection\new\Download' to 'C:\temp\failoverdetection\new\Install'
+puts them in 'C:\temp\failoverdetection\Data'. 
+If there has been a previous run, archives the files to C:\temp\failoverdetection\Archive'
+Copies the required files from 'C:\temp\failoverdetection\Download' to 'C:\temp\failoverdetection\Install'
 and runs the utility
 
 .EXAMPLE
-$InstallationFolder = 'C:\temp\failoverdetection\new\Install'
-$DownloadFolder = 'C:\temp\failoverdetection\new\Download'
-$DataFolder = 'C:\temp\failoverdetection\new\Data'
+$InstallationFolder = 'C:\temp\failoverdetection\Install'
+$DownloadFolder = 'C:\temp\failoverdetection\Download'
+$DataFolder = 'C:\temp\failoverdetection\Data'
 $SQLInstance = 'SQL0'
 
 $invokeSqlFailOverDetectionSplat = @{
@@ -119,9 +121,9 @@ Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat -Verbose -WhatIf
 Shows what would happenn if you ran the command and gives verbose output
 
 .EXAMPLE
-$InstallationFolder = 'C:\temp\failoverdetection\new\Install'
-$DownloadFolder = 'C:\temp\failoverdetection\new\Download'
-$DataFolder = 'C:\temp\failoverdetection\new\Data'
+$InstallationFolder = 'C:\temp\failoverdetection\Install'
+$DownloadFolder = 'C:\temp\failoverdetection\Download'
+$DataFolder = 'C:\temp\failoverdetection\Data'
 $SQLInstance = 'SQL0'
 
 $invokeSqlFailOverDetectionSplat = @{
@@ -136,13 +138,13 @@ Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
 
 Does not download any files
 Does not collect any data
-Copies the required files from 'C:\temp\failoverdetection\new\Download' to 'C:\temp\failoverdetection\new\Install'
-and runs the utility with the Analyze flag to use the already gathered infomration in 'C:\temp\failoverdetection\new\Data'
+Copies the required files from 'C:\temp\failoverdetection\Download' to 'C:\temp\failoverdetection\Install'
+and runs the utility with the Analyze flag to use the already gathered infomration in 'C:\temp\failoverdetection\Data'
 
 .EXAMPLE
-$InstallationFolder = 'C:\temp\failoverdetection\new\Install'
-$DownloadFolder = 'C:\temp\failoverdetection\new\Download'
-$DataFolder = 'C:\temp\failoverdetection\new\Data'
+$InstallationFolder = 'C:\temp\failoverdetection\Install'
+$DownloadFolder = 'C:\temp\failoverdetection\Download'
+$DataFolder = 'C:\temp\failoverdetection\Data'
 $SQLInstance = 'SQL0'
 
 $invokeSqlFailOverDetectionSplat = @{
@@ -158,8 +160,8 @@ Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
 
 Does not download any files
 Does not collect any data
-Copies the required files from 'C:\temp\failoverdetection\new\Download' to 'C:\temp\failoverdetection\new\Install'
-and runs the utility with the Analyze flag to use the already gathered infomration in 'C:\temp\failoverdetection\new\Data'
+Copies the required files from 'C:\temp\failoverdetection\Download' to 'C:\temp\failoverdetection\Install'
+and runs the utility with the Analyze flag to use the already gathered infomration in 'C:\temp\failoverdetection\Data'
 
 .NOTES
 More information about the FailoverDetection Utility can be found here
@@ -187,8 +189,8 @@ function Invoke-SqlFailOverDetection {
         [switch]$Analyze,
         [switch]$Show
     )
-#Requires -Modules dbatools
-#Requires -Version 5
+    #Requires -Modules dbatools
+    #Requires -Version 5
     $msg = "Starting Invoke-SqlFailOverDetection with  
 InstallationFolder = $InstallationFolder
 DownloadFolder = $DownloadFolder
