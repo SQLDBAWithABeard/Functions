@@ -372,7 +372,7 @@ Show = $Show"
     $msg = "Copying the required files to the Installation folder $InstallationFolder"
     Write-Output $msg
     try {
-        if ($PSCmdlet.ShouldProcess("$InstallationFolder" , "Copying the files form the Download folder $DownloadFolder to ")) {
+        if ($PSCmdlet.ShouldProcess("$InstallationFolder" , "Copying the files from the Download folder $DownloadFolder to ")) {
             Get-ChildItem $DownloadFolder\Extract\* -Recurse | Copy-Item -Destination $InstallationFolder -Force
         }
     }
