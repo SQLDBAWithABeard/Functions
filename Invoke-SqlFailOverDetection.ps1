@@ -399,9 +399,11 @@ Show = $Show"
                     $msg = "Copying the system event log to $InstanceFolder from $replica"
                     Write-Output $msg
                     $SystemLogFilePath = $UNCErrorLogPath + '\' + $replicaHostName + '_system.csv'
-                    $Date = (Get-Date).AddDays(-2)
-                    Get-Eventlog -ComputerName $replicaHostName -LogName System -After $Date | Export-CSV -Path  $SystemLogFilePath
-                    Get-ChildItem $UNCErrorLogPath -Filter '*_system.csv' | Copy-Item -Destination $InstanceFolder -Force
+                    $date = (Get-Date).AddDays(-2)
+                    # Get the event log and filter by last two days The silently continue is because if the event log message contains certain characters and is filtered this way it shows errors 
+                    #Get-WinEvent : The description string for parameter reference (%1) could not be found 
+                    Get-WinEvent -FilterHashtable @{LogName = 'System'; StartTime = $date } -ComputerName $replicaHostName -ErrorAction SilentlyContinue | Export-CSV -Path  $SystemLogFilePath
+                    Copy-Item -Path $SystemLogFilePath -Destination $InstanceFolder -Force
                 }
             }
             catch {
