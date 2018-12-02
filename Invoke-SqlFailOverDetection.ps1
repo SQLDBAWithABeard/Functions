@@ -227,6 +227,7 @@ Show = $Show"
         }
         catch {
             Write-Warning "We aren't going to get very far without creating the $DownloadFolder"
+            Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
             Return
         }
     }
@@ -238,6 +239,7 @@ Show = $Show"
         }
         catch {
             Write-Warning "We aren't going to get very far without creating the $InstallationFolder"
+            Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
             Return
         }
     }
@@ -247,8 +249,9 @@ Show = $Show"
                 $null = New-Item $DataFolder -ItemType Directory
             } 
         }
-        catch {
+        catch {       
             Write-Warning "We aren't going to get very far without creating the $DataFolder"
+            Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
         }
     }
     #endregion
@@ -288,7 +291,8 @@ Show = $Show"
                 }
             }
             catch {
-                Write-Warning "The Beard is sad! There was an error downloading file :( $_"
+                Write-Warning "The Beard is sad! There was an error downloading file :( "
+                Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
                 return
             }
         }
@@ -314,6 +318,7 @@ Show = $Show"
             }
             else {
                 Write-Warning "Hmm something has gone wrong - where is the zip file? It should be $FilePath"
+            Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"                
                 Return
             }
         }
@@ -326,8 +331,9 @@ Show = $Show"
     try {
         $Ag = Get-DbaAvailabilityGroup -SqlInstance $SQLInstance -AvailabilityGroup $AvailabilityGroup
     }
-    catch {
+    catch {  
         Write-Warning "Failed to get the informatio about the Availability Group - Gonna have to stop"
+        Write-Warning "Run `$Error[0] | Fl -Force to find out what happened" 
     }
 
     $replicastring = ForEach ($replica in $Ag.AvailabilityReplicas.Name) {
@@ -346,6 +352,7 @@ Show = $Show"
             }
             catch {
                 Write-Warning "We aren't going to get very far without creating the folder $InstanceFolder for the data for the replica $Replica"
+                Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
                 Return
             }
         }
@@ -393,8 +400,9 @@ Show = $Show"
             try {
                 $Errorlogpath = (Get-DbaErrorLogConfig -SqlInstance $replica).LogPath
             }
-            catch {
+            catch { 
                 Write-Warning "Failed to get the error log path for the replica $replica - Going to be difficult to gather all the data for $replica"
+                Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
             }
 
             $UNCErrorLogPath = '\\' + $replicaHostName + '\' + $Errorlogpath.Replace(':', '$')
@@ -432,7 +440,9 @@ Show = $Show"
                 }
             }
             catch {
+                
                 Write-Warning "Failed to get all of the information from the replica $replica - need to stop"
+                Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
                 Return
             }
         }
@@ -449,6 +459,7 @@ Show = $Show"
     }
     catch {
         Write-Warning "Failed to copy the files to the installation folder - Cant carry on"
+        Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
         return
     }
        
@@ -478,6 +489,7 @@ Show = $Show"
         }
         catch {
             Write-Warning "Failed to create the configuration json file- cant continue"
+            Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
         }
     }
     
