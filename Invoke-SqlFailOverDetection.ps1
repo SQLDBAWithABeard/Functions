@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
 Downloads the Failover Detection Utility from the Tiger Team GitHub repo
- https://github.com/Microsoft/tigertoolbox/tree/master/Always-On/FailoverDetection, 
+ https://github.com/Microsoft/tigertoolbox/tree/master/Always-On/FailoverDetection,
  creates the configuration json and gathers all the required data and runs the executable
 
 .DESCRIPTION
 Downloads the Failover Detection Utility from the tiger teams GitHub Repo,
 https://github.com/Microsoft/tigertoolbox/tree/master/Always-On/FailoverDetection
- creates the configuration json dynamically depending on the SQL Instance 
+ creates the configuration json dynamically depending on the SQL Instance
  provided and gathers all of the required data and runs the utility
 
 .PARAMETER InstallationFolder
@@ -70,12 +70,12 @@ $invokeSqlFailOverDetectionSplat = @{
     InstallationFolder = $InstallationFolder
     AlreadyDownloaded = $true
 }
-Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat 
+Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
 
 Does not download any files
 Connects to SQL0 and finds the all of the replicas in the Availability Group and gets the
 Error Logs, Extended Event files, System Event log and Cluster Log for each of the replicas amd
-puts them in 'C:\temp\failoverdetection\Data'. 
+puts them in 'C:\temp\failoverdetection\Data'.
 Copies the required files from 'C:\temp\failoverdetection\Download' to 'C:\temp\failoverdetection\Install'
 and runs the utility
 
@@ -94,12 +94,12 @@ $invokeSqlFailOverDetectionSplat = @{
     ArchiveFolder      = $ArchiveFolder
     AlreadyDownloaded = $true
 }
-Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat 
+Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
 
 Does not download any files
 Connects to SQL0 and finds the all of the replicas in the Availability Group and gets the
 Error Logs, Extended Event files, System Event log and Cluster Log for each of the replicas amd
-puts them in 'C:\temp\failoverdetection\Data'. 
+puts them in 'C:\temp\failoverdetection\Data'.
 If there has been a previous run, archives the files to C:\temp\failoverdetection\Archive'
 Copies the required files from 'C:\temp\failoverdetection\Download' to 'C:\temp\failoverdetection\Install'
 and runs the utility
@@ -191,7 +191,7 @@ function Invoke-SqlFailOverDetection {
     )
     #Requires -Modules dbatools
     #Requires -Version 5
-    $msg = "Starting Invoke-SqlFailOverDetection with  
+    $msg = "Starting Invoke-SqlFailOverDetection with
 InstallationFolder = $InstallationFolder
 DownloadFolder = $DownloadFolder
 DataFolder = $Datafolder
@@ -223,7 +223,7 @@ Show = $Show"
         try {
             if ($PSCmdlet.ShouldProcess("$DownloadFolder" , "Creating Directory")) {
                 $null = New-Item $DownloadFolder -ItemType Directory
-            } 
+            }
         }
         catch {
             Write-Warning "We aren't going to get very far without creating the $DownloadFolder"
@@ -235,7 +235,7 @@ Show = $Show"
         try {
             if ($PSCmdlet.ShouldProcess("$InstallationFolder" , "Creating Directory")) {
                 $null = New-Item $InstallationFolder -ItemType Directory
-            } 
+            }
         }
         catch {
             Write-Warning "We aren't going to get very far without creating the $InstallationFolder"
@@ -247,9 +247,9 @@ Show = $Show"
         try {
             if ($PSCmdlet.ShouldProcess("$DataFolder" , "Creating Directory")) {
                 $null = New-Item $DataFolder -ItemType Directory
-            } 
+            }
         }
-        catch {       
+        catch {
             Write-Warning "We aren't going to get very far without creating the $DataFolder"
             Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
         }
@@ -275,15 +275,15 @@ Show = $Show"
         $DownloadFile = 'https://github.com/Microsoft/tigertoolbox/raw/master/Always-On/FailoverDetection/FailoverDetector.zip'
         $FileName = $DownloadFile.Split('/')[-1]
         $FilePath = $DownloadFolder + $FileName
-    
+
         try {
             if ($PSCmdlet.ShouldProcess("$FilePath" , "Downloading $DownloadFile ")) {
                 (New-Object System.Net.WebClient).DownloadFile($DownloadFile, $FilePath)
-            } 
+            }
         }
         catch {
             try {
-                Write-Output -Message "Probably using a proxy for internet access, trying default proxy settings"
+                Write-Output "Probably using a proxy for internet access, trying default proxy settings"
                 if ($PSCmdlet.ShouldProcess("$FilePath" , "Downloading $DownloadFile with default proxy settings")) {
                     $wc = (New-Object System.Net.WebClient)
                     $wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
@@ -306,7 +306,7 @@ Show = $Show"
                     if (-not (Test-Path "$DownloadFolder\Extract")) {
                         if ($PSCmdlet.ShouldProcess("$DataFolder" , "Creating Directory")) {
                             $null = New-Item "$DownloadFolder\Extract" -ItemType Directory
-                        } 
+                        }
                     }
                     Expand-Archive -Path $FilePath -DestinationPath "$DownloadFolder\Extract" -Force
                 }
@@ -318,11 +318,11 @@ Show = $Show"
             }
             else {
                 Write-Warning "Hmm something has gone wrong - where is the zip file? It should be $FilePath"
-            Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"                
+                Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
                 Return
             }
         }
-    }    
+    }
     #endregion
 
     #region get all of the data
@@ -331,9 +331,9 @@ Show = $Show"
     try {
         $Ag = Get-DbaAvailabilityGroup -SqlInstance $SQLInstance -AvailabilityGroup $AvailabilityGroup
     }
-    catch {  
+    catch {
         Write-Warning "Failed to get the informatio about the Availability Group - Gonna have to stop"
-        Write-Warning "Run `$Error[0] | Fl -Force to find out what happened" 
+        Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
     }
 
     $replicastring = ForEach ($replica in $Ag.AvailabilityReplicas.Name) {
@@ -348,7 +348,7 @@ Show = $Show"
             try {
                 if ($PSCmdlet.ShouldProcess("$InstanceFolder" , "Creating Directory for Data for replica $Replica ")) {
                     $null = New-Item $InstanceFolder -ItemType Directory
-                } 
+                }
             }
             catch {
                 Write-Warning "We aren't going to get very far without creating the folder $InstanceFolder for the data for the replica $Replica"
@@ -373,8 +373,8 @@ Show = $Show"
                 if (-not $ArchiveFolder) {
                     $ArchiveFolder = "$DataFolder\Archive\"
                 }
-                
-                $FolderName = $ArchiveFolder + $FileDate + '_' + $replicaHostName 
+
+                $FolderName = $ArchiveFolder + $FileDate + '_' + $replicaHostName
                 if ($PSCmdlet.ShouldProcess("$FolderName" , "Creating an archive folder ")) {
                     $null = New-Item $FolderName -ItemType Directory
                 }
@@ -382,7 +382,7 @@ Show = $Show"
                     $msg = "Archiving files from $InstanceFolder to $FolderName "
                     Write-Output $msg
                     Get-ChildItem "$InstanceFolder\*" -Recurse | Move-Item -Destination $FolderName
-                }   
+                }
             }
         }
 
@@ -400,7 +400,7 @@ Show = $Show"
             try {
                 $Errorlogpath = (Get-DbaErrorLogConfig -SqlInstance $replica).LogPath
             }
-            catch { 
+            catch {
                 Write-Warning "Failed to get the error log path for the replica $replica - Going to be difficult to gather all the data for $replica"
                 Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
             }
@@ -433,14 +433,14 @@ Show = $Show"
                     Write-Output $msg
                     $SystemLogFilePath = $UNCErrorLogPath + '\' + $replicaHostName + '_system.csv'
                     $date = (Get-Date).AddDays(-2)
-                    # Get the event log and filter by last two days The silently continue is because if the event log message contains certain characters and is filtered this way it shows errors 
-                    #Get-WinEvent : The description string for parameter reference (%1) could not be found 
+                    # Get the event log and filter by last two days The silently continue is because if the event log message contains certain characters and is filtered this way it shows errors
+                    #Get-WinEvent : The description string for parameter reference (%1) could not be found
                     Get-WinEvent -FilterHashtable @{LogName = 'System'; StartTime = $date } -ComputerName $replicaHostName -ErrorAction SilentlyContinue | Export-CSV -Path  $SystemLogFilePath
                     Copy-Item -Path $SystemLogFilePath -Destination $InstanceFolder -Force
                 }
             }
             catch {
-                
+
                 Write-Warning "Failed to get all of the information from the replica $replica - need to stop"
                 Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
                 Return
@@ -462,10 +462,8 @@ Show = $Show"
         Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
         return
     }
-       
+
     #endregion
-    
-   
     #region create the JSON
     $msg = "Creating the Configuration Json file dynamically"
     Write-Verbose $msg
@@ -492,7 +490,6 @@ Show = $Show"
             Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
         }
     }
-    
     #endregion
 
     #region Run the EXE
