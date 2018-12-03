@@ -202,6 +202,15 @@ Analyze = $Analyze
 Show = $Show"
     Write-Verbose $msg
 
+    #So that it passes the Pester
+    Function Get-TheModule {
+        Get-Module FailoverCluster
+    }
+    if(-Not(Get-TheModule)){
+Write-Warning "Sorry you dont have the failover cluster module installed so wont be abel to get the cluster log"
+Write-Warning "You will need to run Install-WindowsFeature -Name Failover-Clustering -IncludeManagementTools"
+Return
+    }
     #Region Some Folder bits
     $msg = "Ensuring folders have \ at the end because it pulls my beard so often"
     Write-Verbose $msg
@@ -278,16 +287,22 @@ Show = $Show"
 
         try {
             if ($PSCmdlet.ShouldProcess("$FilePath" , "Downloading $DownloadFile ")) {
-                (New-Object System.Net.WebClient).DownloadFile($DownloadFile, $FilePath)
+                function DownloadFile {
+                    (New-Object System.Net.WebClient).DownloadFile($DownloadFile, $FilePath)
+                }
+                DownloadFile
             }
         }
         catch {
             try {
                 Write-Output "Probably using a proxy for internet access, trying default proxy settings"
                 if ($PSCmdlet.ShouldProcess("$FilePath" , "Downloading $DownloadFile with default proxy settings")) {
+                    function DownloadFile {
                     $wc = (New-Object System.Net.WebClient)
                     $wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
                     $wc.DownloadFile($DownloadFile, $FilePath)
+                    }
+                    DownloadFile
                 }
             }
             catch {
@@ -415,7 +430,7 @@ Show = $Show"
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the system health Extended Events logs to $InstanceFolder from ")) {
                     $msg = "Copying the system health Extended Events logs to $InstanceFolder from $replica"
                     Write-Output $msg
-                    Get-ChildItem $UNCErrorLogPath -Filter 'system_health_*' | Copy-Item -Destination $InstanceFolder -Force
+                    Get-ChildItem $UNCErrorLogPath -Filter 'system_health_*'  | Copy-Item -Destination $InstanceFolder -Force
                 }
                 if ($PSCmdlet.ShouldProcess("$replica" , "Copying the Always On health Extended Events logs to $InstanceFolder from ")) {
                     $msg = "Copying the Always On health Extended Events logs to $InstanceFolder from $replica"
@@ -440,7 +455,6 @@ Show = $Show"
                 }
             }
             catch {
-
                 Write-Warning "Failed to get all of the information from the replica $replica - need to stop"
                 Write-Warning "Run `$Error[0] | Fl -Force to find out what happened"
                 Return
@@ -497,14 +511,20 @@ Show = $Show"
         if ($Show) {
             if ($PSCmdlet.ShouldProcess("$DataFolder" , "Running the Failover.exe with the Analyze and Show switches so not getting any data ")) {
                 Set-Location $InstallationFolder
+                function RunFailOverDetection {
                 & .\FailoverDetector.exe --Analyze --Show
+                }
+                RunFailOverDetection
                 Return
             }
         }
         else {
             if ($PSCmdlet.ShouldProcess("$DataFolder" , "Running the Failover.exe with the Analyze switch so not getting any data ")) {
                 Set-Location $InstallationFolder
+                function RunFailOverDetection {
                 & .\FailoverDetector.exe --Analyze
+                }
+                RunFailOverDetection
                 Return
             }
         }
@@ -513,13 +533,19 @@ Show = $Show"
         if ($Show) {
             if ($PSCmdlet.ShouldProcess("$InstallationFolder" , "Running the Failover.exe with the Show switch in the folder ")) {
                 Set-Location $InstallationFolder
+                function RunFailOverDetection {
                 & .\FailoverDetector.exe --Show
+                }
+                RunFailOverDetection
             }
         }
         else {
             if ($PSCmdlet.ShouldProcess("$InstallationFolder" , "Running the Failover.exe in the folder ")) {
                 Set-Location $InstallationFolder
+                function RunFailOverDetection {
                 & .\FailoverDetector.exe
+                }
+                RunFailOverDetection
             }
         }
     }
