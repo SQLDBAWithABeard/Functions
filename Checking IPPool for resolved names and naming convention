@@ -1,8 +1,9 @@
 # Get the Pools
-$Pools = Get-SCStaticIPAddressPool -VMMServer $VMMServer | Where {$_.Name -in @('VMPool','ListenerPool','ClusterPool') -and $_.LogicalNetworkDefinition -like '*LS*'}
+$Pools = Get-SCStaticIPAddressPool -VMMServer $VMMServer | Where {$_.Name -in @('VMPool', 'ListenerPool', 'ClusterPool') -and $_.LogicalNetworkDefinition -like '*LS*'}
 
-$Answer = foreach ($pool in $Pools){
-
+$Answer = foreach ($pool in $Pools) {
+    $Name = $pool.Name
+    Write-PSFMessage "Working on Pool - $Name " -Verbose
     # split them up to get the base and the4 last octet
     $StartIp = [IPAddress]$pool.IPAddressRangeStart 
     $StartIpLastOctet = $StartIp.GetAddressBytes()[-1]
@@ -11,57 +12,89 @@ $Answer = foreach ($pool in $Pools){
     $EndIP = [IPAddress]$pool.IPAddressRangeEnd
     $EndIPLastOctet = $EndIP.GetAddressBytes()[-1]
 
-    $Name = $pool.Name
+    $DNSRecords = Get-WmiObject -Class MicrosoftDNS_AType -NameSpace Root\MicrosoftDNS -ComputerName 10.202.31.30  -Filter "DomainName = 'ls1test.local'"  | Select-Object -property Ownername, ipaddress
+
 
     $IP = $StartIpLastOctet
     #loop through them
-    While($IP -le $EndIPLastOctet){
+    While ($IP -le $EndIPLastOctet) {
         $IPAddress = $NetworkBase + "." + $IP
+        Write-PSFMessage "Working on IPADdress $IPAddress" -Verbose
+        try {
+            $resolves = Resolve-DnsName $IPAddress -ErrorAction Stop
+            $Resolved = $true
+            $VMName = $resolves.NameHost
+            switch ($Name) {
+                VMPool {
+                    if ($VMName -like '*VM*') {
+                        $ISDba = $true
+                    }
+                    else {
+                        $ISDba = $False
+                    }
+                }
+                ListenerPool {
+                    if ($VMName -like '*DB*') {
+                        $ISDba = $true
+                    }
+                    else {
+                        $ISDba = $False
+                    }
+                }
+                ClusterPool {
+                    $ISDba = $False
+                }
+                Default {}
+            }
+        }
+        catch {
+            <#
+            if ($Name -eq 'ClusterPool') {
+                Write-PSFMessage "Trying IPADdress $IPAddress as Cluster" -Verbose
+                try {
+                    $resolves = Resolve-DnsName (Get-Cluster $IPAddress  -ErrorAction Stop).Name -ErrorAction Stop
+                    $Resolved = $true
+                    $VMName = $resolves.Name
+                    if ($VMName -like '*CLU*') {
+                        $ISDba = $true
+                    }
+                    else {
+                        $ISDba = $False
+                    }
+                }
+                Catch {
+                    $Resolved = $false
+                    $VMName = 'Nobody Knows'
+                }
+            }#>
 
-       try {
-           $resolves = Resolve-DnsName $IPAddress -ErrorAction Stop
-           $Resolved = $true
-           $VMName = $resolves.NameHost
-           switch ($Name) {
-               VMPool {
-                   if($VMName -like '*VM*'){
-                       $ISDba = $true
-                   }
-                   else{
-                       $ISDba = $False
-                   }
-                 }
-                 ListenerPool {
-                    if($VMName -like '*DB*'){
+            if($Name -eq 'ListenerPool' -or $Name -eq 'ClusterPool'){
+                Write-PSFMessage "Trying IPADdress $IPAddress" -Verbose
+                if($IPaddress -in $DNSRecords.IPADdress){
+                    $VMName = $DNSRecords.Where{$_.IpAddress -eq $IPAddress}.OwnerName -Join " "
+                    if ($VMName -like '*DB*' -or $VMName -like '*CLU*') {
                         $ISDba = $true
                     }
-                    else{
+                    else {
                         $ISDba = $False
                     }
-                 }
-                 ClusterPool {
-                    if($VMName -like '*CLU*'){
-                        $ISDba = $true
-                    }
-                    else{
-                        $ISDba = $False
-                    }
-                 }
-               Default {}
-           }
-       }
-       catch {
-        $Resolved = $false
-        $VMName = 'Nobody Knows'
-       }
+                }
+            }
+            else {
+                $Resolved = $false
+                $VMName = 'Nobody Knows'
+            }
+        }
 
         [PSCustomObject]@{
-            PoolName = $Name
+            PoolName  = $Name
             IPAddress = $IPAddress
-            Resolved = $Resolved
-            IsDBA = $ISDba
-            VMName = $VMName
+            Resolved  = $Resolved
+            IsDBA     = $ISDba
+            VMName    = $VMName
         }
+        Write-PSFMessage "Finished IPADdress $IPAddress" -Verbose
+
         $IP ++
     }
 
