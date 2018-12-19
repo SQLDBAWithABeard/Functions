@@ -1,0 +1,69 @@
+# Get the Pools
+$Pools = Get-SCStaticIPAddressPool -VMMServer $VMMServer | Where {$_.Name -in @('VMPool','ListenerPool','ClusterPool') -and $_.LogicalNetworkDefinition -like '*LS*'}
+
+$Answer = foreach ($pool in $Pools){
+
+    # split them up to get the base and the4 last octet
+    $StartIp = [IPAddress]$pool.IPAddressRangeStart 
+    $StartIpLastOctet = $StartIp.GetAddressBytes()[-1]
+    $NetworkBase = $StartIp.GetAddressBytes()[0..2] -join "." 
+
+    $EndIP = [IPAddress]$pool.IPAddressRangeEnd
+    $EndIPLastOctet = $EndIP.GetAddressBytes()[-1]
+
+    $Name = $pool.Name
+
+    $IP = $StartIpLastOctet
+    #loop through them
+    While($IP -le $EndIPLastOctet){
+        $IPAddress = $NetworkBase + "." + $IP
+
+       try {
+           $resolves = Resolve-DnsName $IPAddress -ErrorAction Stop
+           $Resolved = $true
+           $VMName = $resolves.NameHost
+           switch ($Name) {
+               VMPool {
+                   if($VMName -like '*VM*'){
+                       $ISDba = $true
+                   }
+                   else{
+                       $ISDba = $False
+                   }
+                 }
+                 ListenerPool {
+                    if($VMName -like '*DB*'){
+                        $ISDba = $true
+                    }
+                    else{
+                        $ISDba = $False
+                    }
+                 }
+                 ClusterPool {
+                    if($VMName -like '*CLU*'){
+                        $ISDba = $true
+                    }
+                    else{
+                        $ISDba = $False
+                    }
+                 }
+               Default {}
+           }
+       }
+       catch {
+        $Resolved = $false
+        $VMName = 'Nobody Knows'
+       }
+
+        [PSCustomObject]@{
+            PoolName = $Name
+            IPAddress = $IPAddress
+            Resolved = $Resolved
+            IsDBA = $ISDba
+            VMName = $VMName
+        }
+        $IP ++
+    }
+
+}
+
