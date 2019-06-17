@@ -1,13 +1,16 @@
 function Convert-ADSPowerShellForMarkdown {
     <#
     .SYNOPSIS
-    Converts URL encoded PowerShell code from https://www.url-encode-decode.com/ into valid Markdown URI
+    Converts URL encoded PowerShell code from https://www.url-encode-decode.com/ into valid Markdown URI Link text
     
     .DESCRIPTION
-    Converts URL encoded PowerShell code from https://www.url-encode-decode.com/ into valid Markdown URI
+    Converts URL encoded PowerShell code from https://www.url-encode-decode.com/ into valid Markdown URI Link Text
     
     .PARAMETER inputstring
     The endoded URL from the website
+
+    .PARAMETER LinkText
+    The text to show for the link
     
     .PARAMETER ToClipBoard
     Will not output to screen but instead will set the clipboard
@@ -25,10 +28,15 @@ function Convert-ADSPowerShellForMarkdown {
     Param(
         [Parameter(Mandatory = $true)]
         [string]$inputstring,
+        [string]$linktext = " LINK TEXT HERE ",
         [switch]$ToClipBoard
     )
     clear
-    $outputstring = $inputstring.Replace('+',' ').Replace('%3A',':').Replace('%5C','%5C%5C').Replace('%22','\u0022').Replace('%27','\u0027').Replace('%0D%0A','')
+    $linkage = $inputstring.Replace('+',' ').Replace('%3A',':').Replace('%5C','%5C%5C').Replace('%22','\u0022').Replace('%27','\u0027').Replace('%0D%0A','')
+    
+    $outputstring = @"
+<a href="command:workbench.action.terminal.sendSequence?%7B%22text%22%3A%22 $linkage \u000D %22%7D">$linktext</a>
+"@
     if($ToClipBoard){
         if (-not ($IsLinux -or $IsMacOS) ) {
         $outputstring | Set-Clipboard
