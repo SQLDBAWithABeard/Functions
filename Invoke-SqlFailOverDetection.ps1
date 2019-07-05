@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
 Downloads the Failover Detection Utility from the Tiger Team GitHub repo
- https://github.com/Microsoft/tigertoolbox/tree/master/Always-On/FailoverDetection, 
+ https://github.com/Microsoft/tigertoolbox/tree/master/Always-On/FailoverDetection,
  creates the configuration json and gathers all the required data and runs the executable
 
 .DESCRIPTION
 Downloads the Failover Detection Utility from the tiger teams GitHub Repo,
 https://github.com/Microsoft/tigertoolbox/tree/master/Always-On/FailoverDetection
- creates the configuration json dynamically depending on the SQL Instance 
+ creates the configuration json dynamically depending on the SQL Instance
  provided and gathers all of the required data and runs the utility
 
 .PARAMETER InstallationFolder
@@ -70,7 +70,7 @@ $invokeSqlFailOverDetectionSplat = @{
     InstallationFolder = $InstallationFolder
     AlreadyDownloaded = $true
 }
-Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat 
+Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
 
 Does not download any files
 Connects to SQL0 and finds the all of the replicas in the Availability Group and gets the
@@ -201,6 +201,12 @@ AlreadyDownloaded = $AlreadyDownloaded
 Analyze = $Analyze
 Show = $Show"
     Write-Verbose $msg
+
+    if(Get-Module FailOverCluster -ListAvailable){
+        Write-Warning "You don't have the FailOverCluster module available you need this to generate the cluster logs"
+        Write-Warning "You need to run Install-WindowsFeature -Name Failover-Clustering –IncludeManagementTools in an elevated session"
+        Return
+    }
 
     #Region Some Folder bits
     $msg = "Ensuring folders have \ at the end because it pulls my beard so often"
