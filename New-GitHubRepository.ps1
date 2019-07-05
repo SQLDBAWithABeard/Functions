@@ -25,7 +25,7 @@ Function New-GitHubRepository {
     #write full native response to the pipeline
     [switch]$Raw
     )
-    
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     Write-Verbose "[BEGIN  ] Starting: $($MyInvocation.Mycommand)"
     #display PSBoundparameters formatted nicely for Verbose output  
     [string]$pb = ($PSBoundParameters | Format-Table -AutoSize | Out-String).TrimEnd()
@@ -33,9 +33,11 @@ Function New-GitHubRepository {
     
     #create the header
     $head = @{
-    Authorization = 'Basic ' + $UserToken
+    Authorization = 'token ' + $UserToken
     }
-    
+
+    $msg = $head | ConvertTo-Json
+    Write-Verbose $msg
     #create a hashtable from properties
     $hash = @{
      name = $Name
