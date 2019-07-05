@@ -77,6 +77,72 @@ Describe 'Tests For Help' -Tag Invoke-SqlFailOverDetection {
     } 
 } 
 Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
+    #region Mocks
+    Function Get-ClusterLog {}
+    Mock Get-ClusterLog {}
+
+    Function Get-TheModule {}
+    Mock Get-TheModule {'Summat'}
+    Mock Move-Item {}
+    Mock Remove-Item {}
+    Mock Get-WinEvent {'Summat'}  # because otherwise nothing passes down the pipeline to export-csv
+    Mock Copy-Item {}
+    Mock Write-Verbose {}
+    Mock Write-Warning {}
+    Mock New-Item {}
+    function DownloadFile {}
+    Mock DownloadFile {}
+    Mock Expand-Archive {}
+
+    Mock Get-DbaAvailabilityGroup {
+        @{
+            Name                 = 'DummyAgName'
+            AvailabilityReplicas = @(
+                @{
+                    Name = 'Dummy1'
+                },
+                @{
+                    Name = 'Dummy2'
+                },
+                @{
+                    Name = 'Dummy3'
+                },
+                @{
+                    Name = 'Dummy4'
+                }
+            )
+        }
+    }
+    function Get-DbaErrorLogConfig {}
+    Mock Get-DbaErrorLogConfig {
+        @{
+            LogPath = 'C:\Summat\Summat'
+        }
+    }
+    Mock Get-ChildItem {
+        @{
+            Name          = 'Summat'
+            LastWriteTime = (Get-Date)
+        }
+    } # because otherwise nothing passes down the pipeline to copy-item
+    Mock Get-ClusterLog {}
+    Mock Out-File {}
+    Mock Set-Location {}
+    Mock Export-Csv {}
+    Mock Remove-Item {}
+
+    function RunFailOverDetection {}
+    Mock RunFailOverDetection {}
+
+    Mock Test-Path {$false}
+    Mock Test-Path {$true} -ParameterFilter {$Path -and $path -like '*Download\FailoverDetector.zip'}
+
+    $InstallationFolder = 'C:\temp\'
+    $DownloadFolder = 'C:\temp\Download'
+    $DataFolder = 'C:\temp\'
+    $SQLInstance = 'Dummy'
+    #endregion
+
     Context 'Function' {
         $MadatoryParams = 'InstallationFolder', 'DownloadFolder', 'DataFolder', 'SQLInstance'
         It 'Has Cmdlet Binding set to true' {
@@ -95,56 +161,6 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
         }
     }
     Context 'Execution without folders existing and no switches' {
-        Mock Write-Verbose {}
-        Mock Write-Warning {}
-        Mock New-Item {}
-        function DownloadFile {}
-        Mock DownloadFile {}
-        Mock Expand-Archive {}
-
-        Mock Get-DbaAvailabilityGroup {
-            @{
-                Name                 = 'DummyAgName'
-                AvailabilityReplicas = @(
-                    @{
-                        Name = 'Dummy1'
-                    },
-                    @{
-                        Name = 'Dummy2'
-                    },
-                    @{
-                        Name = 'Dummy3'
-                    },
-                    @{
-                        Name = 'Dummy4'
-                    }
-                )
-            }
-        }
-
-        function Get-DbaErrorLogConfig {}
-        Mock Get-DbaErrorLogConfig {
-            @{
-                LogPath = 'C:\Summat\Summat'
-            }
-        }
-        Mock Copy-Item {}
-        Mock Get-ChildItem {'Summat'} # because otherwise nothing passes down the pipeline to copy-item
-        Mock Get-ClusterLog {}
-        Mock Get-Eventlog {'Summat'} # because otherwise nothing passes down the pipeline to copy-item
-        Mock Out-File {}
-        Mock Set-Location {}
-        Mock Export-Csv {}
-        function RunFailOverDetection {}
-        Mock RunFailOverDetection {}
-
-        Mock Test-Path {$false}
-        Mock Test-Path {$true} -ParameterFilter {$Path -and $path -like '*Download\FailoverDetector.zip'}
-
-        $InstallationFolder = 'C:\temp\'
-        $DownloadFolder = 'C:\temp\Download'
-        $DataFolder = 'C:\temp\'
-        $SQLInstance = 'Dummy'
 
         $invokeSqlFailOverDetectionSplat = @{
             DownloadFolder     = $DownloadFolder
@@ -159,7 +175,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 8
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The New-item function is called whenver we create folders" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The New-item function is called whenver we create folders" 
         }
         It 'Should Downlaod the file' {
             $assertMockParams = @{
@@ -167,7 +183,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We want to download the files otherwise how can we extract them" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We want to download the files otherwise how can we extract them" 
         }
         It 'Should Extract the file' {
             $assertMockParams = @{
@@ -175,7 +191,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to extract the zipped files otherwise how can we run them?" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to extract the zipped files otherwise how can we run them?" 
         }
         It 'Should get the Availability Group Information' {
             $assertMockParams = @{
@@ -183,7 +199,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the replica names from the Availablity Group" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the replica names from the Availablity Group" 
         }
         It 'Should get the location of the Error Log once per replica' {
             $assertMockParams = @{
@@ -191,7 +207,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the error log locatio for each replica" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the error log locatio for each replica" 
         }
         It 'Should get the cluster log once per replica' {
             $assertMockParams = @{
@@ -199,21 +215,21 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the cluster log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the cluster log from each replica to perform the analysis" 
         }
         It 'Should get the system event log once per replica' {
             $assertMockParams = @{
-                'CommandName' = 'Get-Eventlog'
+                'CommandName' = 'Get-WinEvent'
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
             $assertMockParams = @{
                 'CommandName' = 'Export-Csv'
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
         }
         It 'Should copy the files to the Data Folder' {
             $assertMockParams = @{
@@ -221,7 +237,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 21
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "How else will we ge thte files ready fo rth eapplication?" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "How else will we ge thte files ready fo rth eapplication?" 
         }
         It 'Should create the JSON file' {
             $assertMockParams = @{
@@ -229,68 +245,21 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
         }
-        It 'Should create the Executable' {
+        It 'Should run the Executable' {
             $assertMockParams = @{
                 'CommandName' = 'RunFailOverDetection'
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
         }
 
     }
     Context 'Execution with folders existing and no switches' {
-        Mock Write-Verbose {}
-        Mock Write-Warning {}
-        Mock New-Item {}
-        function DownloadFile {}
-        Mock DownloadFile {}
-        Mock Expand-Archive {}
-
-        Mock Get-DbaAvailabilityGroup {
-            @{
-                Name                 = 'DummyAgName'
-                AvailabilityReplicas = @(
-                    @{
-                        Name = 'Dummy1'
-                    },
-                    @{
-                        Name = 'Dummy2'
-                    },
-                    @{
-                        Name = 'Dummy3'
-                    },
-                    @{
-                        Name = 'Dummy4'
-                    }
-                )
-            }
-        }
-
-        function Get-DbaErrorLogConfig {}
-        Mock Get-DbaErrorLogConfig {
-            @{
-                LogPath = 'C:\Summat\Summat'
-            }
-        }
-        Mock Copy-Item {}
-        Mock Get-ChildItem {'Summat'} # because otherwise nothing passes down the pipeline to copy-item
-        Mock Get-ClusterLog {}
-        Mock Get-Eventlog {'Summat'} # because otherwise nothing passes down the pipeline to copy-item
-        Mock Out-File {}
-        Mock Set-Location {}
-        Mock Export-Csv {}
-        function RunFailOverDetection {}
-        Mock RunFailOverDetection {}
 
         Mock Test-Path {$true}
-
-        $InstallationFolder = 'C:\temp\'
-        $DownloadFolder = 'C:\temp\Download'
-        $DataFolder = 'C:\temp\'
-        $SQLInstance = 'Dummy'
 
         $invokeSqlFailOverDetectionSplat = @{
             DownloadFolder     = $DownloadFolder
@@ -302,10 +271,10 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
         It 'Should Not Create the Required Folders' {
             $assertMockParams = @{
                 'CommandName' = 'New-Item'
-                'Times'       = 0
+                'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Dont create folders if they already exist" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Dont create folders if they already exist" 
         }
         It 'Should Downlaod the file' {
             $assertMockParams = @{
@@ -313,7 +282,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We want to download the files otherwise how can we extract them" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We want to download the files otherwise how can we extract them" 
         }
         It 'Should Extract the file' {
             $assertMockParams = @{
@@ -321,7 +290,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to extract the zipped files otherwise how can we run them?" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to extract the zipped files otherwise how can we run them?" 
         }
         It 'Should get the Availability Group Information' {
             $assertMockParams = @{
@@ -329,7 +298,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the replica names from the Availablity Group" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the replica names from the Availablity Group" 
         }
         It 'Should get the location of the Error Log once per replica' {
             $assertMockParams = @{
@@ -337,7 +306,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the error log locatio for each replica" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the error log locatio for each replica" 
         }
         It 'Should get the cluster log once per replica' {
             $assertMockParams = @{
@@ -345,21 +314,21 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the cluster log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the cluster log from each replica to perform the analysis" 
         }
         It 'Should get the system event log once per replica' {
             $assertMockParams = @{
-                'CommandName' = 'Get-Eventlog'
+                'CommandName' = 'WinEvent'
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
             $assertMockParams = @{
                 'CommandName' = 'Export-Csv'
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
         }
         It 'Should copy the files to the Data Folder' {
             $assertMockParams = @{
@@ -367,7 +336,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 21
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "How else will we ge thte files ready fo rth eapplication?" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "How else will we ge thte files ready fo rth eapplication?" 
         }
         It 'Should create the JSON file' {
             $assertMockParams = @{
@@ -375,7 +344,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
         }
         It 'Should create the Executable' {
             $assertMockParams = @{
@@ -383,60 +352,13 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
         }
 
     }
     Context 'Execution with folders existing and AlreadyDownloaded switch' {
-        Mock Write-Verbose {}
-        Mock Write-Warning {}
-        Mock New-Item {}
-        function DownloadFile {}
-        Mock DownloadFile {}
-        Mock Expand-Archive {}
-
-        Mock Get-DbaAvailabilityGroup {
-            @{
-                Name                 = 'DummyAgName'
-                AvailabilityReplicas = @(
-                    @{
-                        Name = 'Dummy1'
-                    },
-                    @{
-                        Name = 'Dummy2'
-                    },
-                    @{
-                        Name = 'Dummy3'
-                    },
-                    @{
-                        Name = 'Dummy4'
-                    }
-                )
-            }
-        }
-
-        function Get-DbaErrorLogConfig {}
-        Mock Get-DbaErrorLogConfig {
-            @{
-                LogPath = 'C:\Summat\Summat'
-            }
-        }
-        Mock Copy-Item {}
-        Mock Get-ChildItem {'Summat'} # because otherwise nothing passes down the pipeline to copy-item
-        Mock Get-ClusterLog {}
-        Mock Get-Eventlog {'Summat'} # because otherwise nothing passes down the pipeline to copy-item
-        Mock Out-File {}
-        Mock Set-Location {}
-        Mock Export-Csv {}
-        function RunFailOverDetection {}
-        Mock RunFailOverDetection {}
-
+        
         Mock Test-Path {$true}
-
-        $InstallationFolder = 'C:\temp\'
-        $DownloadFolder = 'C:\temp\Download'
-        $DataFolder = 'C:\temp\'
-        $SQLInstance = 'Dummy'
 
         $invokeSqlFailOverDetectionSplat = @{
             DownloadFolder     = $DownloadFolder
@@ -449,10 +371,10 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
         It 'Should Create the Required Folders' {
             $assertMockParams = @{
                 'CommandName' = 'New-Item'
-                'Times'       = 0
+                'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Dont create folders if they already exist" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Dont create folders if they already exist" 
         }
         It 'Should Not Downlaod the file' {
             $assertMockParams = @{
@@ -460,7 +382,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 0
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Thats the point of the AlreadyDownloaded switch!" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Thats the point of the AlreadyDownloaded switch!" 
         }
         It 'Should Not Extract the file' {
             $assertMockParams = @{
@@ -468,7 +390,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 0
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We dont need to extraxct it if it has already been downloaded" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We dont need to extraxct it if it has already been downloaded" 
         }
         It 'Should get the Availability Group Information' {
             $assertMockParams = @{
@@ -476,7 +398,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the replica names from the Availablity Group" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the replica names from the Availablity Group" 
         }
         It 'Should get the location of the Error Log once per replica' {
             $assertMockParams = @{
@@ -484,7 +406,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the error log locatio for each replica" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the error log locatio for each replica" 
         }
         It 'Should get the cluster log once per replica' {
             $assertMockParams = @{
@@ -492,21 +414,21 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the cluster log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the cluster log from each replica to perform the analysis" 
         }
         It 'Should get the system event log once per replica' {
             $assertMockParams = @{
-                'CommandName' = 'Get-Eventlog'
+                'CommandName' = 'Get-WinEvent'
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
             $assertMockParams = @{
                 'CommandName' = 'Export-Csv'
                 'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the system event log from each replica to perform the analysis" 
         }
         It 'Should copy the files to the Data Folder' {
             $assertMockParams = @{
@@ -514,7 +436,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 21
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "How else will we ge thte files ready fo rth eapplication?" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "How else will we ge thte files ready fo rth eapplication?" 
         }
         It 'Should create the JSON file' {
             $assertMockParams = @{
@@ -522,7 +444,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
         }
         It 'Should create the Executable' {
             $assertMockParams = @{
@@ -530,76 +452,28 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
         }
 
     }
     Context 'Execution with folders existing and Analyze switch' {
-        Mock Write-Verbose {}
-        Mock Write-Warning {}
-        Mock New-Item {}
-        function DownloadFile {}
-        Mock DownloadFile {}
-        Mock Expand-Archive {}
-
-        Mock Get-DbaAvailabilityGroup {
-            @{
-                Name                 = 'DummyAgName'
-                AvailabilityReplicas = @(
-                    @{
-                        Name = 'Dummy1'
-                    },
-                    @{
-                        Name = 'Dummy2'
-                    },
-                    @{
-                        Name = 'Dummy3'
-                    },
-                    @{
-                        Name = 'Dummy4'
-                    }
-                )
-            }
-        }
-
-        function Get-DbaErrorLogConfig {}
-        Mock Get-DbaErrorLogConfig {
-            @{
-                LogPath = 'C:\Summat\Summat'
-            }
-        }
-        Mock Copy-Item {}
-        Mock Get-ChildItem {'Summat'} # because otherwise nothing passes down the pipeline to copy-item
-        Mock Get-ClusterLog {}
-        Mock Get-Eventlog {'Summat'} # because otherwise nothing passes down the pipeline to copy-item
-        Mock Out-File {}
-        Mock Set-Location {}
-        Mock Export-Csv {}
-        function RunFailOverDetection {}
-        Mock RunFailOverDetection {}
-
         Mock Test-Path {$true}
-
-        $InstallationFolder = 'C:\temp\'
-        $DownloadFolder = 'C:\temp\Download'
-        $DataFolder = 'C:\temp\'
-        $SQLInstance = 'Dummy'
 
         $invokeSqlFailOverDetectionSplat = @{
             DownloadFolder     = $DownloadFolder
             SQLInstance        = $SQLInstance
             DataFolder         = $DataFolder
             InstallationFolder = $InstallationFolder
-            Analyze = $true
+            Analyze            = $true
         }
-        Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplats
+        Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
         It 'Should Create the Required Folders' {
             $assertMockParams = @{
                 'CommandName' = 'New-Item'
-                'Times'       = 0
+                'Times'       = 4
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Dont create folders if they already exist" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Dont create folders if they already exist" 
         }
         It 'Should Not Downlaod the file' {
             $assertMockParams = @{
@@ -607,7 +481,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 0
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Thats the point of the AlreadyDownloaded switch!" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Thats the point of the AlreadyDownloaded switch!" 
         }
         It 'Should Not Extract the file' {
             $assertMockParams = @{
@@ -615,7 +489,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 0
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We dont need to extraxct it if it has already been downloaded" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We dont need to extraxct it if it has already been downloaded" 
         }
         It 'Should get the Availability Group Information' {
             $assertMockParams = @{
@@ -623,7 +497,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the replica names from the Availablity Group" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "We need to get the replica names from the Availablity Group" 
         }
         It 'Should Not get the location of the Error Log on any replica' {
             $assertMockParams = @{
@@ -631,7 +505,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 0
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there" 
         }
         It 'Should get Not the cluster log on any replica' {
             $assertMockParams = @{
@@ -639,21 +513,21 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 0
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there"
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there"
         }
         It 'Should Not get the system event log on any replica' {
             $assertMockParams = @{
-                'CommandName' = 'Get-Eventlog'
+                'CommandName' = 'WinEvent'
                 'Times'       = 0
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there"
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there"
             $assertMockParams = @{
                 'CommandName' = 'Export-Csv'
                 'Times'       = 0
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there"
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there"
         }
         It 'Should copy the files to the Data Folder' {
             $assertMockParams = @{
@@ -661,7 +535,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there"
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Analyze means the data is there"
         }
         It 'Should create the JSON file' {
             $assertMockParams = @{
@@ -669,7 +543,7 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
         }
         It 'Should create the Executable' {
             $assertMockParams = @{
@@ -677,9 +551,27 @@ Describe "$Name Tests" -Tag Invoke-SqlFailOverDetection {
                 'Times'       = 1
                 'Exactly'     = $true
             }
-         {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "The configuration JSON is needed" 
         }
 
     }
-
+    Context "No FailOvercluster module" {
+        Mock Get-TheModule {}
+        $invokeSqlFailOverDetectionSplat = @{
+            DownloadFolder     = $DownloadFolder
+            SQLInstance        = $SQLInstance
+            DataFolder         = $DataFolder
+            InstallationFolder = $InstallationFolder
+            Analyze            = $true
+        }
+        Invoke-SqlFailOverDetection @invokeSqlFailOverDetectionSplat
+        It "Should give a warning and quit" {
+            $assertMockParams = @{
+                'CommandName' = 'Write-Warning'
+                'Times'       = 2
+                'Exactly'     = $true
+            }
+            {Assert-MockCalled @assertMockParams} | Should -Not -Throw -Because "Because we need to stop and tell if there is no failvoer cluster module" 
+        }
+    }
 }
