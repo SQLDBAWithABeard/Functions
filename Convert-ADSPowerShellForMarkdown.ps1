@@ -35,17 +35,18 @@ function Convert-ADSPowerShellForMarkdown {
     clear
     [Reflection.Assembly]::LoadWithPartialName("System.Web") | Out-Null
     $encodedstring = [System.Web.HttpUtility]::UrlEncode($inputstring) 
-    $linkage = $encodedstring.Replace('+', ' ').Replace('%3a', ':').Replace('%5c', '%5c%5c').Replace('%22', '\u0022').Replace('%27', '\u0027').Replace('%0D%0A', '').Replace('%3b%0a','\u003B ').Replace('%0a','\u000A')
+    $linkage = $encodedstring.Replace('+', ' ').Replace('%3a', ':').Replace('%5c', '%5c%5c').Replace('%22', '\u0022').Replace('%27', '\u0027').Replace('%0D%0A', '').Replace('%3b%0a','\u003B ').Replace('%0a','\u000A').Replace('%0d','')
     
     $outputstring = @"
-<a href="command:workbench.action.terminal.sendSequence?%7B%22text%22%3A%22 $linkage \u000D %22%7D">$linktext</a>
+<a href="command:workbench.action.terminal.sendSequence?%7B%22text%22%3A%22 $linkage \u000D \u000D %22%7D">$linktext</a>
 "@
     if ($ToClipBoard) {
-        if (-not ($IsLinux -or $IsMacOS) ) {
+        if ($IsCore) {
+            
             $outputstring | Set-Clipboard
         }
         else {
-            Write-Warning "Set-Clipboard - Doesnt work on Linux - Outputting to screen" 
+            Write-Warning "Set-Clipboard - Doesnt work on Core - Outputting to screen" 
             $outputstring
         }
     }
