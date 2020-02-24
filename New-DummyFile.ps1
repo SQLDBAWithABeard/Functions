@@ -83,7 +83,12 @@ function New-DummyFile {
         for ($i = 1; $i -le $Number; $i++) {
             $BaseName, $extension = $Name.Split('.')
             if ($null -eq $extension) { $extension = 'dmp' }
-            $FileName = "$FilePath\$($BaseName)_$i.$Extension"
+            if($i -ne 1){
+                $FileName = "$FilePath\$($BaseName)_$i.$Extension"
+            } else{
+                $FileName = "$FilePath\$($BaseName).$Extension"
+            }
+
             if (-not $Force) {
                 if (Test-Path $FileName) {
                     Write-Warning "Nope I am not creating the file as -Force was not specified and $FileName already exists"
