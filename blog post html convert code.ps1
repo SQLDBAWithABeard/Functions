@@ -1,11 +1,16 @@
 <#
 
-$Url = 'https://i1.wp.com/sqldbawithabeard.com/wp-content/uploads/2020/08/image-16.png'
+$Images = 3..8
+$path = '2020/07/'
+
+foreach($image in $Images){
+$Url = 'https://i1.wp.com/sqldbawithabeard.com/wp-content/uploads/' + $path + 'image-' + $Image + '.png'
 $fileName = $Url.Split('/')[-1]
 $filepathpart = $Url.Split('/')[-3..(-1)] -join '\'
 $OutputFile = 'C:\Users\mrrob\OneDrive\Documents\GitHub\robsewell\assets\uploads\' + $filepathpart
-
 Invoke-WebRequest -Uri $Url -OutFile $OutputFile
+}
+
 
 #>
 
