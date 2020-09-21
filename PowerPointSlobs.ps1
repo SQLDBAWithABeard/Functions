@@ -11,6 +11,13 @@ OBS:NAMEOFSCENE
 It will only work on Windows PowerShell unless someone knows how
 to get PowerPoint com objects with events in PowerShell core.
 
+Running this script will open PowerPoint and then once you have 
+a slideshow open, it will change the scene in SLOBS - 
+AMAZING for creating fun magical presentations with your webcams in.
+
+At the end do not forget to run
+
+
 #>
 #region Setup Slobs
 function Add-BeardSlobsConnection {
@@ -89,4 +96,9 @@ function Set-BeardSlobsNextSlide {
 
 #endregion
 
-$PowerPoint.SlideShowWindows[1].View.Slide.NotesPage.Shapes[2].TextFrame.TextRange.Text 
+<#
+At the end you will want to unregister the event subscription
+
+Get-EventSubscriber |Unregister-Event
+
+#>

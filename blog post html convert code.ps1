@@ -1,10 +1,14 @@
 <#
 
-$Images = 13..15
-$path = '2020/02/'
+$Images = 1..20
+# $Images = 'GitHub-Pull-Request-VsCode-Extension','viewing-a-change','checkout-pull-request-checkout','pester-tests','creating-contatiners','containers','check-connectivity','what-are-the-unit-tests','agent-wont-start','find-dbacommand','set-the-values','testing-the-checks','powershell-gallery'
+$path = '2019/01/'
 
 foreach($image in $Images){
-$Url = 'https://i1.wp.com/sqldbawithabeard.com/wp-content/uploads/' + $path + 'image-' + $Image + '.png'
+ $Url = 'https://i1.wp.com/sqldbawithabeard.com/wp-content/uploads/' + $path + 'image-' + $Image + '.png'
+# $Url = 'https://i1.wp.com/sqldbawithabeard.com/wp-content/uploads/' + $path + 'opsman' + $Image + '.jpg'
+#  $Url = 'https://i1.wp.com/sqldbawithabeard.com/wp-content/uploads/' + $path + $Image + '.png' 
+
 $fileName = $Url.Split('/')[-1]
 $filepathpart = $Url.Split('/')[-3..(-1)] -join '\'
 $OutputFile = 'C:\Users\mrrob\OneDrive\Documents\GitHub\robsewell\assets\uploads\' + $filepathpart
@@ -14,7 +18,7 @@ Invoke-WebRequest -Uri $Url -OutFile $OutputFile
 
 #>
 
-$posts = Get-ChildItem -Directory  'C:\Users\mrrob\Downloads\static-html-output\2020' -Recurse  | Where Name -NotMatch '\d\d' |Where{$_.Parent.Name -ne 'page'} | Where Name -notin ('page','amp','feed')
+$posts = Get-ChildItem -Directory  'C:\Users\mrrob\Downloads\static-html-output\2019' -Recurse  | Where Name -NotMatch '\d\d' |Where{$_.Parent.Name -ne 'page'} | Where Name -notin ('page','amp','feed')
 
 # $post = Get-Item C:\Users\mrrob\Downloads\static-html-output\2013\05\07\12-things-i-learnt-at-sqlbits-xi
 # foreach ($post in $posts[6..($posts.Count)]){

@@ -60,7 +60,7 @@ https://www.sqlskills.com/blogs/jonathan/the-adventureworks2008r2-books-online-r
 
 function Invoke-RandomWorkload {
 #Requires -Module PoshRsJob
-#Requires -Module SQLServer
+#Requires -Module dbatools
 Param(
 [string]$SqlInstance,
 [pscredential]$SqlCredential,
@@ -89,7 +89,8 @@ Param(
         # Pick a Random Query from the input object 
         $Query = Get-Random -InputObject $Queries 
         # Run the Query
-        Invoke-SqlCmd -ServerInstance  $Using:SqlInstance -Credential $Using:SqlCredential -Database $Using:Database -Query $Query 
+        # Write-Output "Invoke-DbaQuery -SqlInstance  $Using:SqlInstance -SqlCredential $Using:SqlCredential -Database $Using:Database -Query $Query"
+        Invoke-DbaQuery -SqlInstance  $Using:SqlInstance -SqlCredential $Using:SqlCredential -Database $Using:Database -Query $Query 
         # Choose a random number of milliseconds to wait
         $a = Get-Random -Maximum 2000 -Minimum 100; 
         Start-Sleep -Milliseconds $a;     
