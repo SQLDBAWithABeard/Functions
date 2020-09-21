@@ -1,7 +1,12 @@
 <#
 
+THE FIRST THING TO DO IS OPEN Streamlabs
+
+Settings --> Remote Control and click the QR code so the 
+remote control is running
+
 This rough and ready script will change the scene in Streamlabs 
-when the PowerPoint Slide changes
+when the PowerPoint Side changes
 AND
 the first line of the notes on the slide 
 is
