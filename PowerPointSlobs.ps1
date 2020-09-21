@@ -1,4 +1,17 @@
-#Requires -Version 5.1
+<#
+
+This rough and ready script will change the scene in Streamlabs 
+when the PowerPoint Slide changes
+AND
+the first line of the notes on the slide 
+is
+
+OBS:NAMEOFSCENE
+
+It will only work on Windows PowerShell unless someone knows how
+to get PowerPoint com objects with events in PowerShell core.
+
+#>
 #region Setup Slobs
 function Add-BeardSlobsConnection {
     $npipeClient = New-Object System.IO.Pipes.NamedPipeClientStream($Env:ComputerName, 'slobs', [System.IO.Pipes.PipeDirection]::InOut, [System.IO.Pipes.PipeOptions]::None, [System.Security.Principal.TokenImpersonationLevel]::Impersonation)
@@ -51,7 +64,7 @@ function Set-BeardSlobsNextSlide {
     $notes = $PowerPoint.SlideShowWindows[1].View.Slide.NotesPage.Shapes[2].TextFrame.TextRange.Text
     if ($Notes) {
         Write-Host "The notes are $notes"
-        $SceneName = $notes -replace 'OBS:', ''
+        $SceneName = ($notes -split "`r")[0] -replace 'OBS:', ''
         Write-Host "The scene name is $SceneName"
         Set-BeardSlobsObsScene -SceneName $SceneName
     }
